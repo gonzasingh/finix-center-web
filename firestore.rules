@@ -1,0 +1,47 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() { return request.auth != null; }
+    function profile() { return get(/databases/$(database)/documents/users/$(request.auth.uid)).data; }
+    function hasProfile() { return signedIn() && exists(/databases/$(database)/documents/users/$(request.auth.uid)); }
+    function isStaff() { return hasProfile() && profile().role == 'colaborador' && profile().active == true; }
+    function isSocioOf(clientId) { return hasProfile() && profile().role == 'socio' && profile().clientId == clientId; }
+
+    // Perfiles: solo se crean desde el Admin SDK (scripts/seed.mjs) o la consola. Nadie puede cambiar su propio rol.
+    match /users/{uid} {
+      allow read: if signedIn() && (request.auth.uid == uid || isStaff());
+      allow write: if false;
+    }
+
+    // Socios (clientes). El borrado es lógico (campo deleted=true) para conservar la auditoría.
+    match /clients/{id} {
+      allow read: if isStaff() || isSocioOf(id);
+      allow create, update: if isStaff();
+      allow delete: if false;
+    }
+
+    match /credits/{id} {
+      allow read: if isStaff() || isSocioOf(resource.data.clientId);
+      allow create, update: if isStaff();
+      allow delete: if false;
+    }
+
+    // Solicitudes: el socio puede crear la suya (estado inicial "ingresada"); solo el colaborador las gestiona.
+    match /requests/{id} {
+      allow read: if isStaff() || isSocioOf(resource.data.clientId);
+      allow create: if isStaff() || (isSocioOf(request.resource.data.clientId) && request.resource.data.estado == 'ingresada');
+      allow update: if isStaff();
+      allow delete: if false;
+    }
+
+    // Auditoría: solo lectura para colaboradores, alta con su propio uid y hora del servidor. Inmutable.
+    match /auditLogs/{id} {
+      allow read: if isStaff();
+      allow create: if isStaff()
+                    && request.resource.data.actorId == request.auth.uid
+                    && request.resource.data.ts == request.time;
+      allow update, delete: if false;
+    }
+  }
+}

@@ -1,0 +1,10 @@
+node_modules
+dist
+dist-preview
+.env
+.env.local
+.env.*.local
+serviceAccountKey.json
+*.log
+.vercel
+.DS_Store

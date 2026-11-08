@@ -6,7 +6,7 @@
   "description": "Sitio institucional + portal de socios + panel de colaboradores de FINIX Center",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "vite build && node scripts/postbuild.mjs",
     "build:preview": "vite build --mode preview",
     "preview": "vite preview",
     "seed": "node scripts/seed.mjs"

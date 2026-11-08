@@ -59,6 +59,15 @@ git push -u origin main
 
 En <https://vercel.com/new> importá el repo (se detecta Vite). En **Settings → Environment Variables** cargá las `VITE_FIREBASE_*` de `.env.example` y desplegá. `vercel.json` ya incluye el rewrite para que las rutas (`/portal`, `/panel`) funcionen al recargar. Agregá tu dominio de Vercel en *Firebase → Authentication → Settings → Dominios autorizados*.
 
+## 3b. Publicar en GitHub Pages (alternativa a Vercel)
+
+1. Subí el proyecto a un repositorio (ver pasos de arriba). `package.json` debe quedar en la **raíz** del repo y la carpeta `.github/workflows/deploy.yml` tiene que subirse también.
+2. En el repo: **Settings → Pages → Build and deployment → Source: _GitHub Actions_** (no “Deploy from a branch”).
+3. Cada `git push` a `main` ejecuta el workflow (pestaña **Actions**) y publica en `https://USUARIO.github.io/NOMBRE-REPO/`.
+4. Opcional (Firebase): en **Settings → Secrets and variables → Actions** creá los *secrets* `VITE_FIREBASE_*` (mismos nombres que `.env.example`) y agregá `USUARIO.github.io` en *Firebase → Authentication → Settings → Dominios autorizados*. Sin esos secrets el sitio corre en modo demo.
+
+Para probar localmente como si estuviera en Pages: `VITE_BASE=/finix-center-web/ npm run build && npm run preview`.
+
 ## 4. Personalización rápida
 
 - Textos, WhatsApp, horarios, tasas, planes, requisitos, sucursales y cotización USD: `src/config/business.js`
@@ -71,4 +80,3 @@ En <https://vercel.com/new> importá el repo (se detecta Vite). En **Settings �
 - Pendientes de completar en `business.js`: mail institucional y redes sociales.
 - El simulador usa interés simple por período (6%, o 5% con Supermiércoles) según la maqueta de la app.
 - Recuperación de contraseña: como los socios no usan un mail real, el enlace “¿Olvidaste tu contraseña?” deriva a WhatsApp; el colaborador/administrador restablece la clave desde la consola de Firebase o con `npm run seed -- socio ...`.
-# finix-center-web

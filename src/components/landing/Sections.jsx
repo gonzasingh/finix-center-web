@@ -4,6 +4,7 @@ import { BUSINESS, waLink } from '../../config/business';
 import { moneyInt } from '../../lib/format';
 import { CalendarClock, Smartphone, Handshake, BadgePercent, Eye, Headset, CheckCircle2, FileText, ArrowRight, Target, Telescope, HeartHandshake, MessageCircle, Plus, ChevronRight, TrendingUp, TrendingDown, MapPin, Clock, Phone, Briefcase, User } from 'lucide-react';
 import Logo from '../common/Logo';
+import aboutLogo from '../../assets/logo-finix-v.png';
 import PhoneMock from './PhoneMock';
 import { scrollToId } from '../../lib/scroll';
 import { useState } from 'react';
@@ -129,7 +130,7 @@ export function About() {
       <div className="card overflow-hidden">
         <div className="grid lg:grid-cols-[.8fr_1.2fr]">
           <div className="relative flex items-center justify-center bg-gradient-to-br from-gold-800/40 via-transparent to-transparent p-10 grain">
-            <Reveal><Logo className="h-56 drop-shadow-[0_10px_40px_rgba(226,191,96,.35)]" /></Reveal>
+            <Reveal><img src={aboutLogo} alt="FINIX Center" className="w-auto select-none h-56 drop-shadow-[0_10px_40px_rgba(226,191,96,.35)]" draggable="false" /></Reveal>
           </div>
           <div className="p-8 sm:p-12">
             <Reveal><span className="eyebrow">Quiénes somos</span>

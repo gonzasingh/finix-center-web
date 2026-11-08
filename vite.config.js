@@ -6,6 +6,8 @@ import { viteSingleFile } from 'vite-plugin-singlefile';
 // `npm run build`         -> build normal para Vercel (carpeta dist)
 // `npm run build:preview` -> un único .html autocontenido en modo demo (para compartir una vista previa)
 export default defineConfig(({ mode }) => ({
+  // Define la ruta base para GitHub Pages (o la raíz '/' si estás en local/Vercel)
+  base: process.env.GITHUB_PAGES ? '/finix-center-web/' : '/',
   plugins: [react(), ...(mode === 'preview' ? [viteSingleFile()] : [])],
   // En la vista previa (modo demo) no se incluye el SDK de Firebase para que el archivo sea liviano.
   resolve: mode === 'preview' ? { alias: [{ find: /^\.\/firebaseProvider$/, replacement: fileURLToPath(new URL('./src/services/firebaseStub.js', import.meta.url)) }] } : {},

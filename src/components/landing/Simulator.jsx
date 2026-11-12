@@ -20,7 +20,6 @@ export default function Simulator({ compact = false, onRequest }) {
   const [promo, setPromo] = useState(false);
   const [name, setName] = useState('');
   const credit = BUSINESS.simulator[creditType];
-  const amountRules = credit.amount;
   const p = credit.plans[plan];
   const promoAvailable = Boolean(p.promoRate);
   const rate = promo && promoAvailable ? p.promoRate : p.rate;
@@ -33,7 +32,6 @@ export default function Simulator({ compact = false, onRequest }) {
     setCreditType(type);
     setPlan(nextPlan);
     setPeriods(nextCredit.plans[nextPlan].default);
-    setAmount((current) => Math.min(current, nextCredit.amount.max));
     setPromo(false);
   };
   const changePlan = (k) => { setPlan(k); setPeriods(credit.plans[k].default); setPromo(false); };
@@ -64,12 +62,9 @@ export default function Simulator({ compact = false, onRequest }) {
             id="sim-amount"
             type="number"
             inputMode="numeric"
-            min={amountRules.min}
-            max={amountRules.max}
             step={1}
             value={amount || ''}
-            onChange={(e) => setAmount(Math.min(Number(e.target.value) || 0, amountRules.max))}
-            onBlur={() => setAmount((value) => Math.min(amountRules.max, Math.max(amountRules.min, value || amountRules.min)))}
+            onChange={(e) => setAmount(Number(e.target.value) || 0)}
             className="w-full rounded-xl border border-line/25 bg-base/60 py-2 pl-8 pr-3 text-right text-xl font-bold text-gold-300 outline-none transition focus:border-line/60"
             aria-label="Monto del crédito"
           />
@@ -79,13 +74,11 @@ export default function Simulator({ compact = false, onRequest }) {
         {AMOUNT_SHORTCUTS.map(({ value, label }) => (
           <button
             key={value}
-            disabled={value > amountRules.max}
             onClick={() => setAmount(value)}
-            className={`rounded-xl border px-1 py-1.5 text-[11px] font-semibold transition ${value > amountRules.max ? 'cursor-not-allowed border-line/10 text-muted/40' : amount === value ? 'border-line bg-line/20 text-fg' : 'border-line/20 text-muted hover:border-line/50'}`}
+            className={`rounded-xl border px-1 py-1.5 text-[11px] font-semibold transition ${amount === value ? 'border-line bg-line/20 text-fg' : 'border-line/20 text-muted hover:border-line/50'}`}
           >{label}</button>
         ))}
       </div>
-      <p className="mt-2 text-right text-[10px] text-muted">Mínimo {moneyInt(amountRules.min)} · Máximo {moneyInt(amountRules.max)}</p>
 
       <div className="mt-5">
         <span className="label">Plan de financiación</span>
@@ -126,7 +119,7 @@ export default function Simulator({ compact = false, onRequest }) {
 
       {!onRequest && <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Tu nombre (opcional)" className="input mt-4" aria-label="Tu nombre" />}
       {onRequest ? (
-        <button className="btn-gold mt-4 w-full" disabled={amount < amountRules.min || amount > amountRules.max} onClick={() => onRequest({ monto: amount, plan, cuotas: periods, tipoCredito: creditType, promo, rate: r.rate })}>Solicitar este crédito</button>
+        <button className="btn-gold mt-4 w-full" disabled={amount <= 0} onClick={() => onRequest({ monto: amount, plan, cuotas: periods, tipoCredito: creditType, promo, rate: r.rate })}>Solicitar este crédito</button>
       ) : (
         <a href={waLink(msg)} target="_blank" rel="noreferrer" className="btn-gold mt-3 w-full"><MessageCircle className="h-4 w-4" />Solicitar por WhatsApp</a>
       )}

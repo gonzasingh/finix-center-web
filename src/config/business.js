@@ -15,18 +15,15 @@ export const BUSINESS = {
     quincenal: { label: 'Quincenal', days: 15, unit: 'quincenas', min: 2, max: 16, default: 12 },
     mensual: { label: 'Mensual', days: 30, unit: 'meses', min: 3, max: 16, default: 12 },
   },
-  amount: { min: 50000, max: 5000000, step: 10000, chips: [100000, 300000, 500000, 1000000] },
   simulator: {
     personal: {
       label: 'Crédito Personal',
-      amount: { min: 50000, max: 1000000, step: 10000, chips: [100000, 300000, 500000, 1000000] },
       plans: {
         mensual: { label: 'Mensual', unit: 'meses', min: 1, max: 4, default: 4, rate: 0.22 },
       },
     },
     comercial: {
       label: 'Crédito Comercial',
-      amount: { min: 50000, max: 5000000, step: 10000, chips: [100000, 300000, 500000, 1000000] },
       plans: {
         quincenal: { label: 'Quincenal', unit: 'quincenas', min: 2, max: 16, default: 12, rate: 0.12 },
         semanal: { label: 'Semanal', unit: 'semanas', min: 4, max: 16, default: 7, rate: 0.06, promoRate: 0.05 },

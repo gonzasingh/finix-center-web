@@ -11,9 +11,9 @@ export const BUSINESS = {
   // Tasa por período, interés simple (según la maqueta de la app). Supermiércoles: solicitudes ingresadas los miércoles.
   rates: { standard: 0.06, supermiercoles: 0.05 },
   plans: {
-    semanal: { label: 'Semanal', days: 7, unit: 'semanas', min: 4, max: 26, default: 7 },
-    quincenal: { label: 'Quincenal', days: 15, unit: 'quincenas', min: 2, max: 24, default: 12 },
-    mensual: { label: 'Mensual', days: 30, unit: 'meses', min: 3, max: 24, default: 12 },
+    semanal: { label: 'Semanal', days: 7, unit: 'semanas', min: 4, max: 16, default: 7 },
+    quincenal: { label: 'Quincenal', days: 15, unit: 'quincenas', min: 2, max: 16, default: 12 },
+    mensual: { label: 'Mensual', days: 30, unit: 'meses', min: 3, max: 16, default: 12 },
   },
   amount: { min: 50000, max: 5000000, step: 10000, chips: [100000, 300000, 500000, 1000000] },
   usd: { buy: 1185, sell: 1215 },

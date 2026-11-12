@@ -27,7 +27,7 @@ export default function Hero() {
             <Link to="/ingresar" className="btn-outline">Ingresar a mi cuenta</Link>
           </Reveal>
           <Reveal delay={340} className="mt-12 grid max-w-xl grid-cols-3 gap-4 border-t border-line/20 pt-8">
-            {[[CalendarCheck, <CountUp to={24} key="a" />, 'cuotas máx.'], [Zap, <><CountUp to={100} />%</>, 'digital y ágil'], [ShieldCheck, <CountUp to={2} suffix="+" key="c" />, 'años de trayectoria']].map(([Icon, val, label], i) => (
+            {[[CalendarCheck, <CountUp to={16} key="a" />, 'cuotas máx.'], [Zap, <><CountUp to={100} />%</>, 'digital y ágil'], [ShieldCheck, <CountUp to={2} suffix="+" key="c" />, 'años de trayectoria']].map(([Icon, val, label], i) => (
               <div key={i}>
                 <Icon className="mb-2 h-5 w-5 text-gold-300" />
                 <div className="text-2xl font-bold sm:text-3xl">{val}</div>

@@ -1,7 +1,7 @@
 // Crea usuarios y datos iniciales en Firebase con el Admin SDK.
 //
 //   npm run seed -- staff --email valeria@tudominio.com --password "Clave-Segura-1" --name "Valeria Ortiz"
-//   npm run seed -- socio --dni 40155350 --password "ClaveSocio1" --name "Rodrigo Emiliano Veliz" --address "Calle 123" --phone "+54 9 381 555 0142"
+//   npm run seed -- socio --dni 38492615 --password "ClaveSocio1" --name "Mateo E. Gomez" --address "Calle 123" --phone "+54 9 381 555 0142"
 //   npm run seed -- demo     (colaborador + socios de ejemplo con créditos y solicitudes)
 //
 // Requiere una clave de cuenta de servicio: Firebase Console > Configuración > Cuentas de servicio > Generar clave privada.
@@ -56,19 +56,19 @@ const credit = (clientId, numero, plan, cuotas, valorCuota, cuotasPagas, startDa
 async function demo() {
   await createStaff({ email: 'colaborador@finixcenter.com', password: 'Finix2026!', name: 'Valeria Ortiz' });
   const socios = [
-    ['40155350', 'Rodrigo Emiliano Veliz', 'Pasaje Los Jazmines 458, B° Norte, San Miguel de Tucumán', '+54 9 381 555 0142', 226, 78],
+    ['38492615', 'Mateo E. Gomez', 'Pasaje Los Jazmines 458, B° Norte, San Miguel de Tucumán', '+54 9 381 555 0142', 226, 78],
     ['32456781', 'María Fernanda Ledesma', 'Av. Belgrano 1893, Salta Capital', '+54 9 387 411 2290', 118, 94],
     ['28900412', 'Carlos Alberto Núñez', 'Calle Mitre 702, San Salvador de Jujuy', '+54 9 388 502 7731', 131, 38],
   ];
   for (const [dni, name, address, phone, legajo, score] of socios) await createSocio({ dni, password: 'demo1234', name, address, phone, legajo, score });
-  await credit('40155350', '226/0', 'semanal', 12, 140000, 12, 120);
-  await credit('40155350', '226/1', 'semanal', 12, 143333, 1, 10);
-  await credit('40155350', '226/2', 'semanal', 14, 197143, 0, 3);
+  await credit('38492615', '226/0', 'semanal', 12, 140000, 12, 120);
+  await credit('38492615', '226/1', 'semanal', 12, 143333, 1, 10);
+  await credit('38492615', '226/2', 'semanal', 14, 197143, 0, 3);
   await credit('32456781', '118/0', 'quincenal', 12, 85000, 4, 70);
   await credit('28900412', '131/0', 'semanal', 12, 98000, 5, 91);
-  await db.collection('requests').add({ clientId: '40155350', numero: 1, monto: 150000, plan: 'quincenal', cuotas: 12, promo: false, comentario: 'Necesito ampliar mi negocio.', estado: 'en_revision', creditId: null, createdAt: ts(-4), updatedAt: ts(-1),
-    timeline: [{ estado: 'ingresada', fecha: new Date(Date.now() - 4 * day).toISOString(), detalle: 'Se actualizó el estado de tu solicitud', by: 'Rodrigo Emiliano Veliz' }, { estado: 'en_revision', fecha: new Date(Date.now() - day).toISOString(), detalle: 'La empresa comenzó a revisar tu solicitud', by: 'Valeria Ortiz' }] });
-  console.log('✔ Datos de ejemplo cargados. Socio: DNI 40155350 / demo1234 · Colaborador: colaborador@finixcenter.com / Finix2026!');
+  await db.collection('requests').add({ clientId: '38492615', numero: 1, monto: 150000, plan: 'quincenal', cuotas: 12, promo: false, comentario: 'Necesito ampliar mi negocio.', estado: 'en_revision', creditId: null, createdAt: ts(-4), updatedAt: ts(-1),
+    timeline: [{ estado: 'ingresada', fecha: new Date(Date.now() - 4 * day).toISOString(), detalle: 'Se actualizó el estado de tu solicitud', by: 'Mateo E. Gomez' }, { estado: 'en_revision', fecha: new Date(Date.now() - day).toISOString(), detalle: 'La empresa comenzó a revisar tu solicitud', by: 'Valeria Ortiz' }] });
+  console.log('✔ Datos de ejemplo cargados. Socio: DNI 38492615 / demo1234 · Colaborador: colaborador@finixcenter.com / Finix2026!');
 }
 
 try {

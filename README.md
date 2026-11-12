@@ -18,7 +18,7 @@ npm run dev          # http://localhost:5173
 
 Sin variables de entorno el sitio corre en **modo demo** con datos de ejemplo guardados en el navegador:
 
-- Socio: DNI `40155350` · clave `demo1234`
+- Socio: Mateo E. Gomez · DNI `38492615` · clave `demo1234`
 - Colaborador: `colaborador@finixcenter.com` · clave `Finix2026!`
 
 ## 2. Conectar con Firebase
@@ -30,7 +30,7 @@ Sin variables de entorno el sitio corre en **modo demo** con datos de ejemplo gu
 
 ```bash
 npm run seed -- staff --email valeria@tudominio.com --password "Clave-Segura-1" --name "Valeria Ortiz"
-npm run seed -- socio --dni 40155350 --password "ClaveSocio1" --name "Rodrigo Emiliano Veliz" --address "Calle 123" --phone "+54 9 381 555 0142"
+npm run seed -- socio --dni 38492615 --password "ClaveSocio1" --name "Mateo E. Gomez" --address "Calle 123" --phone "+54 9 381 555 0142"
 npm run seed -- demo        # opcional: colaborador + socios con créditos de ejemplo
 ```
 

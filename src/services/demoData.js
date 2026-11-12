@@ -7,11 +7,11 @@ export const DEMO_STAFF = [
   { uid: 'u-staff-2', role: 'colaborador', displayName: 'Martín Sosa', email: 'martin@finixcenter.com', password: 'Finix2026!' },
 ];
 export const DEMO_SOCIO_PASSWORD = 'demo1234';
-export const DEMO_SOCIO_DNI = '40155350';
+export const DEMO_SOCIO_DNI = '38492615';
 
 // [nombre, dni, dirección, teléfono, score, legajo, [[plan, cuotas, valorCuota, pagadas, diasDesdeInicio], ...]]
 const SPECS = [
-  ['Rodrigo Emiliano Veliz', '40155350', 'Pasaje Los Jazmines 458, B° Norte, San Miguel de Tucumán', '+54 9 381 555 0142', 78, 226, 'RODRIGO'],
+  ['Mateo E. Gomez', '38492615', 'Pasaje Los Jazmines 458, B° Norte, San Miguel de Tucumán', '+54 9 381 555 0142', 78, 226, 'MATEO'],
   ['María Fernanda Ledesma', '32456781', 'Av. Belgrano 1893, Salta Capital', '+54 9 387 411 2290', 94, 118, [['quincenal', 12, 85000, 4, 70], ['semanal', 10, 60000, 10, 150]]],
   ['Carlos Alberto Núñez', '28900412', 'Calle Mitre 702, San Salvador de Jujuy', '+54 9 388 502 7731', 38, 131, [['semanal', 12, 98000, 5, 91]]],
   ['Lucía Belén Aguirre', '41233908', 'Av. Mate de Luna 2210, San Miguel de Tucumán', '+54 9 381 622 1045', 88, 142, [['mensual', 12, 120000, 3, 95]]],
@@ -41,24 +41,24 @@ export function buildDemoData(now = new Date()) {
       credits.push({ id: `cr-${id}-${idx}`, clientId: id, numero: `${legajo}/${idx}`, plan, cuotas, valorCuota, cuotasPagas, estado: cuotasPagas >= cuotas ? 'cancelado' : 'activo',
         inicio: iso(inicio), primerVencimiento: iso(addDays(inicio, days)), ...over });
     };
-    if (cr === 'RODRIGO') {
+    if (cr === 'MATEO') {
       mk(0, 'semanal', 12, 140000, 12, 120);                                                    // cancelado (100% pagado)
       mk(1, 'semanal', 12, 143333, 1, 10);                                                       // activo
       mk(2, 'semanal', 14, 197143, 0, 3, { primerVencimiento: iso(nextWeekday(2, now)) });     // activo: próxima cuota un martes
     } else cr.forEach((c, k) => mk(k, ...c));
   });
 
-  const rodrigo = 'c-1';
+  const mateo = 'c-1';
   const mkReq = (id, clientId, numero, monto, plan, cuotas, estado, comentario, tl) =>
     requests.push({ id, clientId, numero, monto, plan, cuotas, promo: false, comentario, estado, creditId: null, createdAt: tl[0].fecha, updatedAt: tl[tl.length - 1].fecha, timeline: tl });
-  mkReq('r-1', rodrigo, 1, 150000, 'quincenal', 12, 'correccion_recibida', 'Necesito ampliar mi negocio.', [
-    { estado: 'ingresada', fecha: iso(ago(18, 13, 23)), detalle: 'Se actualizó el estado de tu solicitud', by: 'Rodrigo Emiliano Veliz' },
+  mkReq('r-1', mateo, 1, 150000, 'quincenal', 12, 'correccion_recibida', 'Necesito ampliar mi negocio.', [
+    { estado: 'ingresada', fecha: iso(ago(18, 13, 23)), detalle: 'Se actualizó el estado de tu solicitud', by: 'Mateo E. Gomez' },
     { estado: 'en_revision', fecha: iso(ago(5, 10, 38)), detalle: 'La empresa comenzó a revisar tu solicitud', by: 'Martín Sosa' },
     { estado: 'observada', fecha: iso(ago(3, 16, 10)), detalle: 'La empresa solicitó información', by: 'Martín Sosa' },
-    { estado: 'correccion_recibida', fecha: iso(ago(2, 8, 40)), detalle: 'Enviaste una corrección', by: 'Rodrigo Emiliano Veliz' },
+    { estado: 'correccion_recibida', fecha: iso(ago(2, 8, 40)), detalle: 'Enviaste una corrección', by: 'Mateo E. Gomez' },
   ]);
-  mkReq('r-2', rodrigo, 2, 300000, 'semanal', 7, 'en_revision', 'Capital para mercadería.', [
-    { estado: 'ingresada', fecha: iso(ago(4, 9, 15)), detalle: 'Se actualizó el estado de tu solicitud', by: 'Rodrigo Emiliano Veliz' },
+  mkReq('r-2', mateo, 2, 300000, 'semanal', 7, 'en_revision', 'Capital para mercadería.', [
+    { estado: 'ingresada', fecha: iso(ago(4, 9, 15)), detalle: 'Se actualizó el estado de tu solicitud', by: 'Mateo E. Gomez' },
     { estado: 'en_revision', fecha: iso(ago(1, 11, 5)), detalle: 'La empresa comenzó a revisar tu solicitud', by: 'Valeria Ortiz' },
   ]);
   mkReq('r-3', 'c-4', 1, 500000, 'mensual', 12, 'ingresada', 'Remodelación del local.', [
@@ -75,11 +75,11 @@ export function buildDemoData(now = new Date()) {
     action, entityType, entityId, entityLabel, summary, changes, clientId });
   const [V, M] = DEMO_STAFF;
   const audit = [
-    A(1, 11, 5, V, 'solicitud.revision', 'solicitud', 'r-2', 'Solicitud #2 · Rodrigo Emiliano Veliz', 'Pasó la solicitud #2 a “En revisión”', [], 'c-1'),
+    A(1, 11, 5, V, 'solicitud.revision', 'solicitud', 'r-2', 'Solicitud #2 · Mateo E. Gomez', 'Pasó la solicitud #2 a “En revisión”', [], 'c-1'),
     A(2, 9, 12, M, 'cliente.editar', 'cliente', 'c-5', 'Juan Pablo Rojas', 'Actualizó datos del socio', [{ field: 'telefono', label: 'Teléfono', from: '+54 9 383 440 9800', to: '+54 9 383 440 9812' }], 'c-5'),
-    A(3, 16, 10, M, 'solicitud.observar', 'solicitud', 'r-1', 'Solicitud #1 · Rodrigo Emiliano Veliz', 'Observó la solicitud #1: La empresa solicitó información', [], 'c-1'),
+    A(3, 16, 10, M, 'solicitud.observar', 'solicitud', 'r-1', 'Solicitud #1 · Mateo E. Gomez', 'Observó la solicitud #1: La empresa solicitó información', [], 'c-1'),
     A(4, 15, 45, V, 'solicitud.observar', 'solicitud', 'r-5', 'Solicitud #1 · Agustín Leandro Herrera', 'Observó la solicitud #1: Falta adjuntar boleta de servicio actualizada', [], 'c-13'),
-    A(5, 10, 38, M, 'solicitud.revision', 'solicitud', 'r-1', 'Solicitud #1 · Rodrigo Emiliano Veliz', 'Pasó la solicitud #1 a “En revisión”', [], 'c-1'),
+    A(5, 10, 38, M, 'solicitud.revision', 'solicitud', 'r-1', 'Solicitud #1 · Mateo E. Gomez', 'Pasó la solicitud #1 a “En revisión”', [], 'c-1'),
     A(7, 14, 22, V, 'cliente.editar', 'cliente', 'c-3', 'Carlos Alberto Núñez', 'Actualizó datos del socio', [{ field: 'direccion', label: 'Dirección', from: 'Calle Mitre 700, San Salvador de Jujuy', to: 'Calle Mitre 702, San Salvador de Jujuy' }], 'c-3'),
     A(9, 12, 30, M, 'solicitud.aprobar', 'solicitud', 'r-0', 'Solicitud #2 · Silvana Beatriz Cruz', 'Aprobó la solicitud #2 y generó el crédito 167/0', [], 'c-6'),
     A(15, 10, 2, V, 'cliente.crear', 'cliente', 'c-14', 'Natalia Romina Villagra', 'Dio de alta al socio (DNI 33780124)', [], 'c-14'),

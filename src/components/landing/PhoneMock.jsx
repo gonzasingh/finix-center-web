@@ -17,7 +17,7 @@ export default function PhoneMock() {
               <Logo white className="h-11" />
               <div className="flex gap-1.5"><span className="flex h-8 w-8 items-center justify-center rounded-full bg-white/25"><Bell className="h-4 w-4" /></span><span className="flex h-8 w-8 items-center justify-center rounded-full bg-white/25"><User className="h-4 w-4" /></span></div>
             </div>
-            <div className="mt-2 flex items-end justify-between"><div><p className="text-[10px] opacity-90">Buen día</p><p className="text-base font-bold leading-tight">Rodrigo Emiliano Veliz</p><p className="text-[9px] opacity-80">DNI 40155350</p></div><span className="text-[9px] opacity-90">Crédito activo</span></div>
+            <div className="mt-2 flex items-end justify-between"><div><p className="text-[10px] opacity-90">Buen día</p><p className="text-base font-bold leading-tight">Mateo E. Gomez</p><p className="text-[9px] opacity-80">DNI 38.492.615</p></div><span className="text-[9px] opacity-90">Crédito activo</span></div>
             <p className="mt-3 text-[10px] font-medium opacity-90">Saldo pendiente</p>
             <p className="text-2xl font-extrabold tracking-tight">$2.760.002,00</p>
           </div>

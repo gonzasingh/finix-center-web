@@ -57,12 +57,12 @@ export async function getSocioOverview(profile) {
   ]);
   return { client: fromSnap(clientSnap), credits, requests };
 }
-export async function createRequest(profile, { monto, plan, cuotas, comentario }) {
+export async function createRequest(profile, { monto, plan, cuotas, comentario, promo, rate, tipoCredito }) {
   const [clientSnap, existing] = await Promise.all([
     getDoc(doc(db, 'clients', profile.clientId)),
     list(query(collection(db, 'requests'), where('clientId', '==', profile.clientId))),
   ]);
-  const data = newRequest({ client: fromSnap(clientSnap), monto, plan, cuotas, comentario, existing, promo: isWednesday() });
+  const data = newRequest({ client: fromSnap(clientSnap), monto, plan, cuotas, comentario, existing, promo: promo ?? isWednesday(), rate, tipoCredito });
   const ref = doc(collection(db, 'requests'));
   const batch = writeBatch(db);
   batch.set(ref, data);

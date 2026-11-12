@@ -1,22 +1,36 @@
 import { useMemo, useState } from 'react';
 import { Calculator, Sparkles, MessageCircle } from 'lucide-react';
 import { BUSINESS, waLink } from '../../config/business';
-import { simulate, isWednesday } from '../../lib/credit';
+import { simulate } from '../../lib/credit';
 import { moneyInt } from '../../lib/format';
 
 // Simulador de crédito (mismas reglas que la app: interés simple por período).
 export default function Simulator({ compact = false, onRequest }) {
   const [amount, setAmount] = useState(300000);
-  const [plan, setPlan] = useState('semanal');
-  const [periods, setPeriods] = useState(BUSINESS.plans.semanal.default);
-  const [promo, setPromo] = useState(isWednesday());
+  const [creditType, setCreditType] = useState('personal');
+  const [plan, setPlan] = useState('mensual');
+  const [periods, setPeriods] = useState(BUSINESS.simulator.personal.plans.mensual.default);
+  const [promo, setPromo] = useState(false);
   const [name, setName] = useState('');
-  const p = BUSINESS.plans[plan];
-  const r = useMemo(() => simulate({ amount, periods, promo }), [amount, periods, promo]);
+  const credit = BUSINESS.simulator[creditType];
+  const amountRules = credit.amount;
+  const p = credit.plans[plan];
+  const promoAvailable = Boolean(p.promoRate);
+  const rate = promo && promoAvailable ? p.promoRate : p.rate;
+  const r = useMemo(() => simulate({ amount, periods, rate }), [amount, periods, rate]);
   const pct = Math.round(r.rate * 100);
 
-  const changePlan = (k) => { setPlan(k); setPeriods(BUSINESS.plans[k].default); };
-  const msg = `Hola FINIX Center! Mi nombre es ${name.trim() || 'un futuro socio'}. Quisiera solicitar un crédito de ${moneyInt(amount)} en ${periods} ${p.unit} (cuota estimada ${moneyInt(r.installment)}).`;
+  const changeCreditType = (type) => {
+    const nextCredit = BUSINESS.simulator[type];
+    const nextPlan = Object.keys(nextCredit.plans)[0];
+    setCreditType(type);
+    setPlan(nextPlan);
+    setPeriods(nextCredit.plans[nextPlan].default);
+    setAmount((current) => Math.min(current, nextCredit.amount.max));
+    setPromo(false);
+  };
+  const changePlan = (k) => { setPlan(k); setPeriods(credit.plans[k].default); setPromo(false); };
+  const msg = `Hola FINIX Center! Mi nombre es ${name.trim() || 'un futuro socio'}. Quisiera solicitar un ${credit.label.toLowerCase()} de ${moneyInt(amount)} en ${periods} ${p.unit} (cuota estimada ${moneyInt(r.installment)}).`;
 
   return (
     <div className={`card relative overflow-hidden ${compact ? 'p-5' : 'p-6 sm:p-7'}`}>
@@ -29,21 +43,27 @@ export default function Simulator({ compact = false, onRequest }) {
         <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-line/30 bg-line/10 text-gold-300"><Calculator className="h-5 w-5" /></div>
       </div>
 
+      <div className="mb-5 grid grid-cols-2 gap-2" role="tablist" aria-label="Tipo de crédito">
+        {Object.entries(BUSINESS.simulator).map(([key, option]) => (
+          <button key={key} role="tab" aria-selected={creditType === key} onClick={() => changeCreditType(key)} className={`rounded-xl border py-2.5 text-xs font-semibold transition ${creditType === key ? 'border-line bg-gold-grad text-ink' : 'border-line/25 text-muted hover:border-line/60'}`}>{option.label}</button>
+        ))}
+      </div>
+
       <div className="mb-1 flex items-end justify-between">
         <label htmlFor="sim-amount" className="label !mb-0">¿Cuánto necesitás?</label>
         <span className="text-2xl font-bold text-gold-grad">{moneyInt(amount)}</span>
       </div>
-      <input id="sim-amount" type="range" className="w-full" min={BUSINESS.amount.min} max={BUSINESS.amount.max} step={BUSINESS.amount.step} value={amount} onChange={(e) => setAmount(+e.target.value)} />
+      <input id="sim-amount" type="range" className="w-full" min={amountRules.min} max={amountRules.max} step={amountRules.step} value={amount} onChange={(e) => setAmount(+e.target.value)} />
       <div className="mt-3 grid grid-cols-4 gap-2">
-        {BUSINESS.amount.chips.map((c) => (
+        {amountRules.chips.map((c) => (
           <button key={c} onClick={() => setAmount(c)} className={`rounded-xl border px-1 py-1.5 text-[11px] font-semibold transition ${amount === c ? 'border-line bg-line/20 text-fg' : 'border-line/20 text-muted hover:border-line/50'}`}>{c >= 1e6 ? '$1M' : moneyInt(c)}</button>
         ))}
       </div>
 
       <div className="mt-5">
         <span className="label">Plan de financiación</span>
-        <div className="grid grid-cols-3 gap-2" role="radiogroup">
-          {Object.entries(BUSINESS.plans).map(([k, v]) => (
+        <div className={`grid gap-2 ${Object.keys(credit.plans).length === 1 ? 'grid-cols-1' : 'grid-cols-2'}`} role="radiogroup">
+          {Object.entries(credit.plans).map(([k, v]) => (
             <button key={k} role="radio" aria-checked={plan === k} onClick={() => changePlan(k)} className={`rounded-xl border py-2 text-xs font-semibold transition ${plan === k ? 'border-line bg-gold-grad text-ink' : 'border-line/25 text-muted hover:border-line/60'}`}>{v.label}</button>
           ))}
         </div>
@@ -57,11 +77,13 @@ export default function Simulator({ compact = false, onRequest }) {
         <input id="sim-periods" type="range" className="w-full" min={p.min} max={p.max} value={periods} onChange={(e) => setPeriods(+e.target.value)} />
       </div>
 
-      <button onClick={() => setPromo((v) => !v)} aria-pressed={promo} className={`mt-5 flex w-full items-center gap-3 rounded-xl border px-3.5 py-2.5 text-left text-xs transition ${promo ? 'border-line bg-line/15' : 'border-line/20 hover:border-line/50'}`}>
-        <Sparkles className="h-4 w-4 shrink-0 text-gold-300" />
-        <span className="flex-1"><b>Supermiércoles:</b> pedilo un miércoles y la tasa baja de {Math.round(BUSINESS.rates.standard * 100)}% a {Math.round(BUSINESS.rates.supermiercoles * 100)}% por período.</span>
-        <span className={`h-5 w-9 shrink-0 rounded-full p-0.5 transition ${promo ? 'bg-gold-400' : 'bg-line/25'}`}><span className={`block h-4 w-4 rounded-full bg-white transition ${promo ? 'translate-x-4' : ''}`} /></span>
-      </button>
+      {promoAvailable && (
+        <button onClick={() => setPromo((v) => !v)} aria-pressed={promo} className={`mt-5 flex w-full items-center gap-3 rounded-xl border px-3.5 py-2.5 text-left text-xs transition ${promo ? 'border-line bg-line/15' : 'border-line/20 hover:border-line/50'}`}>
+          <Sparkles className="h-4 w-4 shrink-0 text-gold-300" />
+          <span className="flex-1"><b>Supermiércoles:</b> la tasa baja de {Math.round(p.rate * 100)}% a {Math.round(p.promoRate * 100)}% por período.</span>
+          <span className={`h-5 w-9 shrink-0 rounded-full p-0.5 transition ${promo ? 'bg-gold-400' : 'bg-line/25'}`}><span className={`block h-4 w-4 rounded-full bg-white transition ${promo ? 'translate-x-4' : ''}`} /></span>
+        </button>
+      )}
 
       <div className="mt-5 rounded-2xl border border-line/30 bg-base/60 p-4">
         <div className="text-center">
@@ -77,7 +99,7 @@ export default function Simulator({ compact = false, onRequest }) {
 
       {!onRequest && <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Tu nombre (opcional)" className="input mt-4" aria-label="Tu nombre" />}
       {onRequest ? (
-        <button className="btn-gold mt-4 w-full" onClick={() => onRequest({ monto: amount, plan, cuotas: periods })}>Solicitar este crédito</button>
+        <button className="btn-gold mt-4 w-full" onClick={() => onRequest({ monto: amount, plan, cuotas: periods, tipoCredito: creditType, promo, rate: r.rate })}>Solicitar este crédito</button>
       ) : (
         <a href={waLink(msg)} target="_blank" rel="noreferrer" className="btn-gold mt-3 w-full"><MessageCircle className="h-4 w-4" />Solicitar por WhatsApp</a>
       )}

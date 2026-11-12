@@ -2,10 +2,10 @@ import { BUSINESS } from '../config/business';
 
 // Simulador: interés simple por período (6% estándar, 5% con Supermiércoles). Coincide con la maqueta de la app:
 // $300.000 a 7 semanas => cuota $60.857, total $426.000, interés $126.000.
-export function simulate({ amount, periods, promo = false }) {
+export function simulate({ amount, periods, promo = false, rate: customRate }) {
   if (!Number.isInteger(periods) || periods < 1) throw new Error('La cantidad de cuotas debe ser un entero positivo');
   periods = Math.min(periods, Math.max(...Object.values(BUSINESS.plans).map(({ max }) => max)));
-  const rate = promo ? BUSINESS.rates.supermiercoles : BUSINESS.rates.standard;
+  const rate = customRate ?? (promo ? BUSINESS.rates.supermiercoles : BUSINESS.rates.standard);
   const interest = Math.round(amount * rate * periods);
   const total = amount + interest;
   return { rate, interest, total, installment: Math.round(total / periods), periods };

@@ -54,10 +54,10 @@ export async function getSocioOverview(profile) {
     requests: db.requests.filter((r) => r.clientId === profile.clientId),
   });
 }
-export async function createRequest(profile, { monto, plan, cuotas, comentario }) {
+export async function createRequest(profile, { monto, plan, cuotas, comentario, promo, rate, tipoCredito }) {
   await wait(400);
   const client = db.clients.find((c) => c.id === profile.clientId);
-  const req = { id: uid('r'), ...newRequest({ client, monto, plan, cuotas, comentario, existing: db.requests, promo: isWednesday() }) };
+  const req = { id: uid('r'), ...newRequest({ client, monto, plan, cuotas, comentario, existing: db.requests, promo: promo ?? isWednesday(), rate, tipoCredito }) };
   db.requests.push(req); save();
   return clone(req);
 }

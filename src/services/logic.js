@@ -51,7 +51,7 @@ export function applyReview(req, action, { actor, comentario = '', client, allCr
   let creditId = req.creditId || null;
 
   if (action === 'aprobar') {
-    const sim = simulate({ amount: req.monto, periods: req.cuotas, promo: !!req.promo });
+    const sim = simulate({ amount: req.monto, periods: req.cuotas, promo: !!req.promo, rate: req.rate });
     const days = { semanal: 7, quincenal: 15, mensual: 30 }[req.plan] ?? 7;
     credit = {
       clientId: req.clientId,
@@ -73,11 +73,11 @@ export function applyReview(req, action, { actor, comentario = '', client, allCr
   return { request, credit, audit: auditEntry({ actor, action: AUDIT_BY_ACTION[action], entityType: 'solicitud', entityId: req.id, entityLabel: label, summary, clientId: req.clientId }) };
 }
 
-export function newRequest({ client, monto, plan, cuotas, comentario, existing, promo, now = new Date() }) {
+export function newRequest({ client, monto, plan, cuotas, comentario, existing, promo, rate, tipoCredito, now = new Date() }) {
   validateInstallments(plan, cuotas);
   const numero = existing.filter((r) => r.clientId === client.id).length + 1;
   return {
-    clientId: client.id, numero, monto, plan, cuotas, promo: !!promo, comentario: (comentario || '').trim(),
+    clientId: client.id, numero, monto, plan, cuotas, promo: !!promo, ...(rate == null ? {} : { rate }), ...(tipoCredito ? { tipoCredito } : {}), comentario: (comentario || '').trim(),
     estado: 'ingresada', creditId: null, createdAt: now.toISOString(), updatedAt: now.toISOString(),
     timeline: [{ estado: 'ingresada', fecha: now.toISOString(), detalle: requestDetail.ingresada, by: client.nombre }],
   };

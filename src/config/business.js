@@ -1,12 +1,12 @@
 // Datos del negocio y reglas del simulador. Editá este archivo para actualizar la web sin tocar componentes.
 export const BUSINESS = {
   name: 'FINIX Center',
-  whatsapp: '5493834709315',
-  whatsappDisplay: '+54 9 3834 709315',
+  whatsapp: '549387644589',
+  whatsappDisplay: '+54 9 387 6445890',
   email: '', // TODO: completar el mail institucional (si queda vacío no se muestra)
   hours: 'Lunes a Viernes 09:00 - 18:00 hs',
   headquarters: 'Casa Central: Tucumán, Argentina',
-  coverage: ['Río Piedras', 'El Galpón', 'San José de Metán', 'Rosario de la Frontera', 'El Tala', 'Trancas', 'San Pedro de Colalao'],
+  coverage: ['Río Piedras', 'El Galpón', 'Salta Capital', 'San José de Metán', 'Rosario de la Frontera', 'El Tala', 'San Miguel de Tucumán', 'Trancas', 'San Pedro de Colalao'],
   social: { instagram: '', facebook: '' }, // TODO: completar redes
   // Tasa por período, interés simple (según la maqueta de la app). Supermiércoles: solicitudes ingresadas los miércoles.
   rates: { standard: 0.06, supermiercoles: 0.05 },
@@ -35,8 +35,8 @@ export const BUSINESS = {
   },
   usd: { buy: 1185, sell: 1215 },
   branches: [
-    { name: 'Sucursal Barrio Norte', address: 'Av. Sarmiento 1240', hours: '09 a 18 hs', phone: '381 555-0224' },
-    { name: 'Sucursal Centro', address: 'Av. Sarmiento 1240', hours: '09 a 18 hs', phone: '381 555-0110' },
+    { name: 'Sucursal Metán', address: 'Belgrano Este 42, piso 2 oficina 16', hours: '09 a 18 hs', phone: '387 644-5890' },
+    { name: 'Casa Central Tucumán', address: 'Av. Sarmiento 1240', hours: '09 a 18 hs', phone: '381 555-0110' },
   ],
   requirements: {
     personal: ['Recibo de sueldo (antigüedad 1 año)', 'D.N.I.', 'Boleta de servicios'],

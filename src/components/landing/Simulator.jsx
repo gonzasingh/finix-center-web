@@ -4,6 +4,13 @@ import { BUSINESS, waLink } from '../../config/business';
 import { simulate } from '../../lib/credit';
 import { moneyInt } from '../../lib/format';
 
+const AMOUNT_SHORTCUTS = [
+  { value: 300000, label: '$300.000' },
+  { value: 500000, label: '$500.000' },
+  { value: 1000000, label: '$1M' },
+  { value: 3000000, label: '$3M' },
+];
+
 // Simulador de crédito (mismas reglas que la app: interés simple por período).
 export default function Simulator({ compact = false, onRequest }) {
   const [amount, setAmount] = useState(300000);
@@ -49,16 +56,36 @@ export default function Simulator({ compact = false, onRequest }) {
         ))}
       </div>
 
-      <div className="mb-1 flex items-end justify-between">
+      <div className="mb-1 flex items-center justify-between gap-3">
         <label htmlFor="sim-amount" className="label !mb-0">¿Cuánto necesitás?</label>
-        <span className="text-2xl font-bold text-gold-grad">{moneyInt(amount)}</span>
+        <div className="relative w-44">
+          <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-lg font-bold text-gold-300">$</span>
+          <input
+            id="sim-amount"
+            type="number"
+            inputMode="numeric"
+            min={amountRules.min}
+            max={amountRules.max}
+            step={1}
+            value={amount || ''}
+            onChange={(e) => setAmount(Math.min(Number(e.target.value) || 0, amountRules.max))}
+            onBlur={() => setAmount((value) => Math.min(amountRules.max, Math.max(amountRules.min, value || amountRules.min)))}
+            className="w-full rounded-xl border border-line/25 bg-base/60 py-2 pl-8 pr-3 text-right text-xl font-bold text-gold-300 outline-none transition focus:border-line/60"
+            aria-label="Monto del crédito"
+          />
+        </div>
       </div>
-      <input id="sim-amount" type="range" className="w-full" min={amountRules.min} max={amountRules.max} step={amountRules.step} value={amount} onChange={(e) => setAmount(+e.target.value)} />
       <div className="mt-3 grid grid-cols-4 gap-2">
-        {amountRules.chips.map((c) => (
-          <button key={c} onClick={() => setAmount(c)} className={`rounded-xl border px-1 py-1.5 text-[11px] font-semibold transition ${amount === c ? 'border-line bg-line/20 text-fg' : 'border-line/20 text-muted hover:border-line/50'}`}>{c >= 1e6 ? '$1M' : moneyInt(c)}</button>
+        {AMOUNT_SHORTCUTS.map(({ value, label }) => (
+          <button
+            key={value}
+            disabled={value > amountRules.max}
+            onClick={() => setAmount(value)}
+            className={`rounded-xl border px-1 py-1.5 text-[11px] font-semibold transition ${value > amountRules.max ? 'cursor-not-allowed border-line/10 text-muted/40' : amount === value ? 'border-line bg-line/20 text-fg' : 'border-line/20 text-muted hover:border-line/50'}`}
+          >{label}</button>
         ))}
       </div>
+      <p className="mt-2 text-right text-[10px] text-muted">Mínimo {moneyInt(amountRules.min)} · Máximo {moneyInt(amountRules.max)}</p>
 
       <div className="mt-5">
         <span className="label">Plan de financiación</span>
@@ -99,7 +126,7 @@ export default function Simulator({ compact = false, onRequest }) {
 
       {!onRequest && <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Tu nombre (opcional)" className="input mt-4" aria-label="Tu nombre" />}
       {onRequest ? (
-        <button className="btn-gold mt-4 w-full" onClick={() => onRequest({ monto: amount, plan, cuotas: periods, tipoCredito: creditType, promo, rate: r.rate })}>Solicitar este crédito</button>
+        <button className="btn-gold mt-4 w-full" disabled={amount < amountRules.min || amount > amountRules.max} onClick={() => onRequest({ monto: amount, plan, cuotas: periods, tipoCredito: creditType, promo, rate: r.rate })}>Solicitar este crédito</button>
       ) : (
         <a href={waLink(msg)} target="_blank" rel="noreferrer" className="btn-gold mt-3 w-full"><MessageCircle className="h-4 w-4" />Solicitar por WhatsApp</a>
       )}

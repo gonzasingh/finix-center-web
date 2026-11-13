@@ -25,7 +25,7 @@ export default {
         marquee: { '0%': { transform: 'translateX(0)' }, '100%': { transform: 'translateX(-50%)' } },
         float: { '0%,100%': { transform: 'translateY(0)' }, '50%': { transform: 'translateY(-12px)' } },
       },
-      animation: { marquee: 'marquee 38s linear infinite', float: 'float 7s ease-in-out infinite' },
+      animation: { marquee: 'marquee 76s linear infinite', float: 'float 7s ease-in-out infinite' },
     },
   },
   plugins: [],

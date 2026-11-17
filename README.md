@@ -80,3 +80,21 @@ Para probar localmente como si estuviera en Pages: `VITE_BASE=/finix-center-web/
 - Pendientes de completar en `business.js`: mail institucional y redes sociales.
 - El simulador usa interés simple por período (6%, o 5% con Supermiércoles) según la maqueta de la app.
 - Recuperación de contraseña: como los socios no usan un mail real, el enlace “¿Olvidaste tu contraseña?” deriva a WhatsApp; el colaborador/administrador restablece la clave desde la consola de Firebase o con `npm run seed -- socio ...`.
+
+## Cotización del dólar automática
+
+La sección "Compramos tus dólares" toma el **dólar blue de referencia** de una API pública, sin servidor propio ni API key:
+
+1. **DolarApi.com** (`https://dolarapi.com/v1/dolares/blue`, campos `compra` y `venta`).
+2. Si falla o devuelve datos inválidos, **Bluelytics** (`https://api.bluelytics.com.ar/v2/latest`).
+3. Si ambas fallan, se muestra el valor manual de `BUSINESS.usd` en `src/config/business.js`.
+
+Se actualiza cada 5 minutos (y al volver a la pestaña), pausada mientras la pestaña está oculta. El último valor se guarda 1 hora en el navegador para mostrarlo al instante.
+
+Todo se configura en `src/config/business.js` → `usdLive`:
+
+- `enabled`: `false` desactiva la API y muestra siempre el valor manual.
+- `refreshMs`: frecuencia de actualización en milisegundos.
+- `buyMarginPct` / `sellMarginPct`: ajuste en % sobre el blue para mostrar el precio propio de la casa (ej. `buyMarginPct: -2`). En `0` se muestra el valor del mercado tal cual.
+
+Código: `src/services/exchangeRates.js` (fuentes y validación) y `src/lib/useDollarRate.js` (hook de React).

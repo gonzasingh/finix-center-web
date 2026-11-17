@@ -1,7 +1,8 @@
 import { Link } from 'react-router-dom';
 import { Reveal, SpotCard } from '../common/hooks';
 import { BUSINESS, waLink } from '../../config/business';
-import { moneyInt } from '../../lib/format';
+import { moneyInt, fmtTime } from '../../lib/format';
+import useDollarRate from '../../lib/useDollarRate';
 import { CalendarClock, Smartphone, Handshake, BadgePercent, Eye, Headset, CheckCircle2, FileText, ArrowRight, Target, Telescope, HeartHandshake, MessageCircle, Plus, ChevronRight, TrendingUp, TrendingDown, MapPin, Clock, Phone, Briefcase, User } from 'lucide-react';
 import Logo from '../common/Logo';
 import aboutLogo from '../../assets/logo-finix-v.png';
@@ -149,6 +150,8 @@ export function About() {
 }
 
 export function Dollar() {
+  const usd = useDollarRate();
+  const stamp = usd.updatedAt instanceof Date && !Number.isNaN(usd.updatedAt.getTime()) ? fmtTime(usd.updatedAt) : null;
   return (
     <section id="cotizacion" className="mx-auto max-w-6xl px-5 pb-24">
       <Reveal>
@@ -162,12 +165,17 @@ export function Dollar() {
               <a href={waLink('Hola FINIX Center, quisiera consultar por la cotización de dólares del día.')} target="_blank" rel="noreferrer" className="btn-gold mt-6"><MessageCircle className="h-4 w-4" />Consultar operaciones</a>
             </div>
             <div className="grid grid-cols-2 gap-4">
-              {[['Compramos', BUSINESS.usd.buy, TrendingUp], ['Vendemos', BUSINESS.usd.sell, TrendingDown]].map(([l, v, Icon]) => (
+              {[['Compramos', usd.buy, TrendingUp], ['Vendemos', usd.sell, TrendingDown]].map(([l, v, Icon]) => (
                 <div key={l} className="rounded-2xl border border-line/25 bg-base/60 p-5 text-center">
                   <Icon className="mx-auto mb-2 h-5 w-5 text-gold-300" /><div className="text-[11px] uppercase tracking-widest text-muted">{l}</div>
                   <div className="mt-1 text-3xl font-bold text-gold-grad">{moneyInt(v)}</div><div className="text-[11px] text-muted">USD</div>
                 </div>
               ))}
+              <p className="col-span-2 flex items-center justify-center gap-2 text-center text-[11px] text-muted" aria-live="polite">
+                {usd.live && stamp ? (
+                  <><span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-400" />Dólar blue de referencia · actualizado {stamp} hs</>
+                ) : 'Cotización de referencia · consultanos para confirmar el valor del día'}
+              </p>
             </div>
           </div>
         </div>

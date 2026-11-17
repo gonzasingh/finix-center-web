@@ -37,7 +37,7 @@ export const BUSINESS = {
   // (ej.: buyMarginPct: -2 muestra "Compramos" un 2% por debajo del blue). En 0 se muestra el valor del mercado sin tocar.
   usdLive: { enabled: true, refreshMs: 5 * 60 * 1000, buyMarginPct: 0, sellMarginPct: 0 },
   branches: [
-    { name: 'Sucursal Metán', address: 'Belgrano Este 42, piso 2 oficina 16', hours: '09 a 18 hs', phone: '387 644-5890' },
+    { name: 'Sucursal Metán', address: 'Belgrano Este 42, piso 2 oficina 16, San José de Metán, Salta', hours: '09 a 18 hs', phone: '387 652-9011' },
     { name: 'Casa Central Tucumán', address: 'Av. Sarmiento 1240', hours: '09 a 18 hs', phone: '381 555-0110' },
   ],
   requirements: {

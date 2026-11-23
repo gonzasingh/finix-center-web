@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Toda la comunicación usa HTTPS, salvo el servidor de FINIX (API AdmCloud), que hoy responde por http://.
+  Cuando ese servidor tenga HTTPS: definí VITE_API_BASE_URL con la dirección https y borrá el bloque <domain-config>.
+-->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="false">
+        <trust-anchors>
+            <certificates src="system" />
+        </trust-anchors>
+    </base-config>
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="false">nuevo.mine.nu</domain>
+    </domain-config>
+</network-security-config>

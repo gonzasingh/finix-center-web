@@ -1,0 +1,106 @@
+name: Generar AAB firmado (Google Play)
+
+# Se ejecuta a mano: pestaña "Actions" > "Generar AAB firmado" > "Run workflow".
+on:
+  workflow_dispatch:
+    inputs:
+      version_name:
+        description: 'Nombre de versión que verá el usuario (ej: 3.0.0)'
+        required: false
+        default: '3.0.0'
+
+jobs:
+  aab:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      # Huella SHA-256 del certificado con el que se firmó el AAB anterior (CN=Jose, OU=Adm). Solo se usa para avisarte si no coincide.
+      EXPECTED_SHA256: '69:1C:5B:6E:02:2A:F5:DC:9A:81:3D:2C:9B:71:B8:A8:5C:2A:2F:C1:3F:D8:1F:DD:E8:8C:B1:8C:43:A5:21:17'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Verificar que cargaste los secrets
+        env:
+          FINIX_KEYSTORE_BASE64: ${{ secrets.FINIX_KEYSTORE_BASE64 }}
+          FINIX_KEYSTORE_PASSWORD: ${{ secrets.FINIX_KEYSTORE_PASSWORD }}
+          FINIX_KEY_ALIAS: ${{ secrets.FINIX_KEY_ALIAS }}
+          FINIX_KEY_PASSWORD: ${{ secrets.FINIX_KEY_PASSWORD }}
+        run: |
+          missing=()
+          for v in FINIX_KEYSTORE_BASE64 FINIX_KEYSTORE_PASSWORD FINIX_KEY_ALIAS FINIX_KEY_PASSWORD; do
+            if [ -z "${!v}" ]; then missing+=("$v"); fi
+          done
+          if [ ${#missing[@]} -gt 0 ]; then
+            echo "::error::Faltan estos secrets (Settings > Secrets and variables > Actions): ${missing[*]}"
+            exit 1
+          fi
+          echo "Todos los secrets están cargados."
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - uses: android-actions/setup-android@v3
+
+      - name: Restaurar keystore y mostrar su huella
+        env:
+          FINIX_KEYSTORE_BASE64: ${{ secrets.FINIX_KEYSTORE_BASE64 }}
+          FINIX_KEYSTORE_PASSWORD: ${{ secrets.FINIX_KEYSTORE_PASSWORD }}
+          FINIX_KEY_ALIAS: ${{ secrets.FINIX_KEY_ALIAS }}
+        run: |
+          echo "$FINIX_KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/finix-upload.jks"
+          keytool -list -v -keystore "$RUNNER_TEMP/finix-upload.jks" -alias "$FINIX_KEY_ALIAS" -storepass "$FINIX_KEYSTORE_PASSWORD" > "$RUNNER_TEMP/ks.txt"
+          SHA=$(grep "SHA256:" "$RUNNER_TEMP/ks.txt" | head -1 | sed 's/.*SHA256: *//')
+          echo "SHA-256 del keystore: $SHA"
+          printf '### Keystore usado\n\n`%s`\n' "$SHA" >> "$GITHUB_STEP_SUMMARY"
+          if [ "$SHA" != "$EXPECTED_SHA256" ]; then
+            echo "::warning::Este keystore NO es el que firmó tu AAB anterior. Si ya subiste ese AAB a Play Console, Google va a rechazar este por clave de firma distinta (ver LEEME.md, sección 'Si no tenés el keystore')."
+          else
+            echo "El keystore coincide con el del AAB anterior."
+          fi
+
+      - run: npm ci
+
+      - name: Compilar la web (producción, conectada a la API de FINIX)
+        run: npm run build
+
+      - name: Copiar la web al proyecto Android
+        run: npx cap sync android
+
+      - name: Generar el AAB firmado
+        working-directory: android
+        env:
+          FINIX_KEYSTORE_PATH: ${{ runner.temp }}/finix-upload.jks
+          FINIX_KEYSTORE_PASSWORD: ${{ secrets.FINIX_KEYSTORE_PASSWORD }}
+          FINIX_KEY_ALIAS: ${{ secrets.FINIX_KEY_ALIAS }}
+          FINIX_KEY_PASSWORD: ${{ secrets.FINIX_KEY_PASSWORD }}
+          # versionCode único y creciente en cada ejecución (Play exige que cada subida sea mayor que la anterior)
+          FINIX_VERSION_CODE: ${{ github.run_number }}0${{ github.run_attempt }}
+          FINIX_VERSION_NAME: ${{ inputs.version_name }}
+        run: |
+          chmod +x ./gradlew
+          ./gradlew bundleRelease --no-daemon --stacktrace
+
+      - name: Verificar firma y versión del AAB
+        env:
+          VCODE: ${{ github.run_number }}0${{ github.run_attempt }}
+          VNAME: ${{ inputs.version_name }}
+        run: |
+          AAB=android/app/build/outputs/bundle/release/app-release.aab
+          ls -la "$AAB"
+          jarsigner -verify -verbose:summary "$AAB" | tail -3
+          echo "versionCode: $VCODE · versionName: $VNAME"
+          printf '### AAB generado\n\nversionCode: `%s` · versionName: `%s`\n' "$VCODE" "$VNAME" >> "$GITHUB_STEP_SUMMARY"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: finix-center-aab
+          path: android/app/build/outputs/bundle/release/app-release.aab
+          if-no-files-found: error
+          retention-days: 30

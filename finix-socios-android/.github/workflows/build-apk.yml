@@ -1,0 +1,96 @@
+name: Generar APK instalable (para probar en el celular)
+
+# Se ejecuta a mano: pestaña "Actions" > "Generar APK instalable" > "Run workflow".
+# - debug   : NO necesita keystore ni secrets. Genera un APK que se instala en cualquier celular para probar la app.
+# - release : APK firmado con tu keystore (usa los mismos 4 secrets que el workflow del AAB).
+on:
+  workflow_dispatch:
+    inputs:
+      tipo:
+        description: 'debug = instalable ya, sin keystore (recomendado para probar) · release = firmado con tu keystore'
+        type: choice
+        options: [debug, release]
+        default: debug
+      version_name:
+        description: 'Nombre de versión (ej: 3.0.0)'
+        required: false
+        default: '3.0.0'
+
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - uses: android-actions/setup-android@v3
+
+      - name: Restaurar keystore (solo release)
+        if: inputs.tipo == 'release'
+        env:
+          FINIX_KEYSTORE_BASE64: ${{ secrets.FINIX_KEYSTORE_BASE64 }}
+          FINIX_KEYSTORE_PASSWORD: ${{ secrets.FINIX_KEYSTORE_PASSWORD }}
+          FINIX_KEY_ALIAS: ${{ secrets.FINIX_KEY_ALIAS }}
+          FINIX_KEY_PASSWORD: ${{ secrets.FINIX_KEY_PASSWORD }}
+        run: |
+          missing=()
+          for v in FINIX_KEYSTORE_BASE64 FINIX_KEYSTORE_PASSWORD FINIX_KEY_ALIAS FINIX_KEY_PASSWORD; do
+            if [ -z "${!v}" ]; then missing+=("$v"); fi
+          done
+          if [ ${#missing[@]} -gt 0 ]; then
+            echo "::error::Para el APK 'release' faltan estos secrets: ${missing[*]}. Cargalos o ejecutá el workflow con tipo 'debug'."
+            exit 1
+          fi
+          echo "$FINIX_KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/finix-upload.jks"
+
+      - run: npm ci
+
+      - name: Compilar la web (producción, conectada a la API de FINIX)
+        run: npm run build
+
+      - name: Copiar la web al proyecto Android
+        run: npx cap sync android
+
+      - name: Generar el APK
+        working-directory: android
+        env:
+          FINIX_KEYSTORE_PATH: ${{ inputs.tipo == 'release' && format('{0}/finix-upload.jks', runner.temp) || '' }}
+          FINIX_KEYSTORE_PASSWORD: ${{ secrets.FINIX_KEYSTORE_PASSWORD }}
+          FINIX_KEY_ALIAS: ${{ secrets.FINIX_KEY_ALIAS }}
+          FINIX_KEY_PASSWORD: ${{ secrets.FINIX_KEY_PASSWORD }}
+          FINIX_VERSION_CODE: ${{ github.run_number }}0${{ github.run_attempt }}
+          FINIX_VERSION_NAME: ${{ inputs.version_name }}
+          TIPO: ${{ inputs.tipo }}
+        run: |
+          chmod +x ./gradlew
+          if [ "$TIPO" = "release" ]; then ./gradlew assembleRelease --no-daemon --stacktrace; else ./gradlew assembleDebug --no-daemon --stacktrace; fi
+
+      - name: Verificar el APK
+        env:
+          TIPO: ${{ inputs.tipo }}
+        run: |
+          APK=$(ls android/app/build/outputs/apk/$TIPO/*.apk | head -1)
+          echo "APK: $APK"; ls -la "$APK"
+          BT=$(ls -d "$ANDROID_HOME"/build-tools/* | sort -V | tail -1)
+          "$BT/apksigner" verify --print-certs "$APK" | head -5
+          "$BT/aapt2" dump badging "$APK" | grep -E "^package:|targetSdkVersion|uses-permission" | head -6
+          printf '### APK generado (%s)\n\n`%s`\n' "$TIPO" "$(basename "$APK")" >> "$GITHUB_STEP_SUMMARY"
+          cp "$APK" "$RUNNER_TEMP/finix-center-$TIPO.apk"
+          echo "APK_PATH=$RUNNER_TEMP/finix-center-$TIPO.apk" >> "$GITHUB_ENV"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: finix-center-apk-${{ inputs.tipo }}
+          path: ${{ env.APK_PATH }}
+          if-no-files-found: error
+          retention-days: 30

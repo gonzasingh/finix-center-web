@@ -1,0 +1,11 @@
+{
+  "appId": "com.finix.center",
+  "appName": "FINIX Center",
+  "webDir": "dist",
+  "server": { "androidScheme": "https" },
+  "android": { "allowMixedContent": false, "webContentsDebuggingEnabled": false },
+  "plugins": {
+    "SplashScreen": { "launchAutoHide": false, "launchShowDuration": 0, "backgroundColor": "#17110A", "showSpinner": false },
+    "SystemBars": { "insetsHandling": "css", "style": "DARK", "initialViewportFitValueHint": "cover" }
+  }
+}

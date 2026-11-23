@@ -110,7 +110,7 @@ export function AppShowcase() {
             Consultá saldos, vencimientos y comprobantes desde la App FINIX o desde el portal web. Ingresá con tu DNI y tu contraseña.
           </SectionHead>
           <ul className="space-y-4">
-            {[['Estado de cuenta en vivo', 'Saldo pendiente, avance del crédito y cronograma de cuotas.'], ['Avisos de próximos vencimientos', 'Te recordamos tu próxima cuota y novedades de tus solicitudes.'], ['Solicitudes con seguimiento', 'Línea de tiempo con cada movimiento: ingresada, en revisión, aprobada.']].map(([t, d]) => (
+            {[['Estado de cuenta en vivo', 'Saldo pendiente, avance del crédito, próximo vencimiento y movimientos.'], ['Avisos de próximos vencimientos', 'Te recordamos tu próxima cuota y novedades de tus solicitudes.'], ['Solicitudes con seguimiento', 'Línea de tiempo con cada movimiento: ingresada, en revisión, aprobada.']].map(([t, d]) => (
               <Reveal as="li" key={t} className="flex list-none gap-3"><CheckCircle2 className="mt-1 h-5 w-5 shrink-0 text-gold-300" /><div><h4 className="font-semibold">{t}</h4><p className="text-sm font-light text-muted">{d}</p></div></Reveal>
             ))}
           </ul>

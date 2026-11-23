@@ -1,5 +1,6 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
+import { fileURLToPath } from 'node:url';
 import { viteSingleFile } from 'vite-plugin-singlefile';
 
 // `npm run dev`           -> desarrollo con datos de ejemplo (modo demo, sin servidor)
@@ -15,6 +16,8 @@ export default defineConfig(({ mode }) => ({
   // GitHub Pages sirve el sitio en /nombre-del-repo/. El workflow define VITE_BASE=/finix-center-web/ (en Vercel queda '/').
   base: process.env.VITE_BASE || '/',
   plugins: [react(), ...(mode === 'preview' ? [viteSingleFile()] : [])],
+  // En la vista previa (modo demo) no se incluye el SDK de Firebase para que el archivo sea liviano.
+  resolve: mode === 'preview' ? { alias: [{ find: /^\.\/firebaseProvider$/, replacement: fileURLToPath(new URL('./src/services/firebaseStub.js', import.meta.url)) }] } : {},
   build:
     mode === 'preview'
       ? { outDir: 'dist-preview', assetsInlineLimit: 100000000, cssCodeSplit: false }

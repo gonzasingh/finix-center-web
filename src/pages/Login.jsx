@@ -6,13 +6,12 @@ import ThemeToggle from '../components/common/ThemeToggle';
 import Particles from '../components/common/Particles';
 import { Spinner } from '../components/dashboard/ui';
 import { useAuth } from '../context/AuthContext';
-import { DEMO } from '../lib/env';
 import { waLink } from '../config/business';
 
 export default function Login() {
   const { user, login } = useAuth();
   const nav = useNavigate();
-  // El acceso de colaboradores (panel de ejemplo) existe solo en el modo demo. En producción ingresan únicamente los socios.
+  // Socios: ingresan con la API real de FINIX. Colaboradores: panel de gestión (ver src/services/index.js).
   const [mode, setMode] = useState('socio');
   const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
@@ -40,7 +39,7 @@ export default function Login() {
         <Link to="/" className="relative flex w-fit items-center gap-2 text-sm text-gold-200/80 hover:text-gold-200"><ArrowLeft className="h-4 w-4" />Volver al sitio</Link>
         <div className="relative text-center"><Logo className="mx-auto h-28 drop-shadow-[0_10px_50px_rgba(226,191,96,.4)]" />
           <h2 className="mx-auto mt-6 max-w-sm text-balance text-3xl font-bold leading-tight text-white">Tu crédito, <span className="text-gold-grad">siempre a mano</span></h2>
-          <p className="mx-auto mt-3 max-w-sm text-sm font-light text-gold-100/70">Consultá saldos, cuotas y solicitudes{DEMO ? '. Si sos parte del equipo, gestioná socios y créditos con registro de cada acción.' : ' cuando quieras, desde tu celular o tu computadora.'}</p></div>
+          <p className="mx-auto mt-3 max-w-sm text-sm font-light text-gold-100/70">Consultá saldos, cuotas y solicitudes. Si sos parte del equipo, gestioná socios y créditos con registro de cada acción.</p></div>
         <p className="relative text-xs text-gold-100/50">Conexión cifrada · FINIX Center</p>
       </aside>
 
@@ -50,19 +49,20 @@ export default function Login() {
           <ThemeToggle />
         </div>
         <div className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center pb-10">
-          <Logo className="mx-auto mb-6 h-24 lg:hidden" />
-          <h1 className="text-center text-3xl font-bold">Ingresar</h1>
-          <p className="mt-2 text-center text-sm text-muted">{DEMO ? 'Elegí cómo querés acceder' : 'Accedé a tu cuenta de socio'}</p>
+          {/* En el celular el logo tiene exactamente el ancho de la palabra "Ingresar" (w-0 + min-w-full: toma el ancho de la columna que fija el título) */}
+          <div className="mx-auto grid w-fit justify-items-center">
+            <Logo className="mb-5 !w-0 h-auto min-w-full lg:hidden" />
+            <h1 className="text-3xl font-bold">Ingresar</h1>
+          </div>
+          <p className="mt-2 text-center text-sm text-muted">Elegí cómo querés acceder</p>
 
-          {DEMO && (
-            <div className="mt-7 grid grid-cols-2 gap-1.5 rounded-2xl border border-line/20 bg-surface/60 p-1.5" role="tablist">
-              {[['socio', 'Soy socio', Users], ['colaborador', 'Soy colaborador', ShieldCheck]].map(([k, l, Icon]) => (
-                <button key={k} type="button" role="tab" aria-selected={mode === k} onClick={() => switchMode(k)} className={`flex items-center justify-center gap-2 rounded-xl py-2.5 text-sm font-semibold transition ${mode === k ? 'bg-gold-grad text-ink shadow-gold' : 'text-muted hover:text-fg'}`}><Icon className="h-4 w-4" />{l}</button>
-              ))}
-            </div>
-          )}
+          <div className="mt-7 grid grid-cols-2 gap-1.5 rounded-2xl border border-line/20 bg-surface/60 p-1.5" role="tablist">
+            {[['socio', 'Soy socio', Users], ['colaborador', 'Soy colaborador', ShieldCheck]].map(([k, l, Icon]) => (
+              <button key={k} type="button" role="tab" aria-selected={mode === k} onClick={() => switchMode(k)} className={`flex items-center justify-center gap-2 rounded-xl py-2.5 text-sm font-semibold transition ${mode === k ? 'bg-gold-grad text-ink shadow-gold' : 'text-muted hover:text-fg'}`}><Icon className="h-4 w-4" />{l}</button>
+            ))}
+          </div>
 
-          <form onSubmit={submit} className={`card space-y-5 p-6 ${DEMO ? 'mt-5' : 'mt-7'}`} noValidate>
+          <form onSubmit={submit} className="card mt-5 space-y-5 p-6" noValidate>
             <div>
               <h2 className="text-center text-xl font-bold">{mode === 'socio' ? 'Mi cuenta' : 'Acceso al sistema'}</h2>
               <p className="mt-1 text-center text-sm text-muted">{mode === 'socio' ? 'Aquí podrás consultar tus créditos, pagos y estado de cuenta.' : 'Gestión de socios, créditos y solicitudes del equipo FINIX.'}</p>

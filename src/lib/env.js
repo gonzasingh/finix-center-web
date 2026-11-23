@@ -1,8 +1,8 @@
 const e = import.meta.env;
 
-// MODO DEMO: datos de ejemplo guardados en el navegador, sin servidor. Solo para desarrollo y vistas previas
-// (`npm run dev`, `npm run build:demo`, `npm run build:preview`). El build de producción (`npm run build`) NUNCA lo usa:
-// ahí el sitio trabaja con los datos reales de FINIX y no incluye ni el acceso de colaboradores ni los datos de ejemplo.
+// MODO DEMO: datos de ejemplo (socios y colaboradores) guardados en el navegador, sin servidor. Solo para desarrollo y vistas previas
+// (`npm run dev`, `npm run build:demo`, `npm run build:preview`). En el build de producción (`npm run build`) los SOCIOS siempre ven
+// datos reales de FINIX; el panel de colaboradores usa Firebase si está configurado y, si no, datos de ejemplo del navegador.
 export const DEMO = e.MODE === 'demo' || e.MODE === 'preview';
 export const ROUTER_MODE = e.VITE_ROUTER === 'memory' ? 'memory' : 'browser';
 
@@ -15,7 +15,9 @@ export const API_BASE_URL = rawBase.endsWith('/') ? rawBase : `${rawBase}/`;
 // Código de empresa con el que se identifica el socio al iniciar sesión.
 export const EMPRESA_CODIGO = e.VITE_EMPRESA_CODIGO || 'FINIX';
 
-// Legado: Firebase ya no se usa (src/services/firebaseProvider.js quedó sin conectar). Se conservan estas variables solo para que ese archivo compile.
+// Panel de colaboradores: con VITE_FIREBASE_API_KEY el acceso "Soy colaborador" usa Firebase (Auth + Firestore, ver README);
+// sin ella funciona con datos de ejemplo guardados en el navegador. Los socios NO usan Firebase: usan la API de FINIX.
+export const USE_FIREBASE = !!e.VITE_FIREBASE_API_KEY;
 export const SOCIO_EMAIL_DOMAIN = e.VITE_SOCIO_EMAIL_DOMAIN || 'socios.finixcenter.app';
 export const firebaseConfig = {
   apiKey: e.VITE_FIREBASE_API_KEY,

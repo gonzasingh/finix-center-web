@@ -4,11 +4,9 @@ import { useAuth } from './context/AuthContext';
 import { Spinner } from './components/dashboard/ui';
 import Landing from './pages/Landing';
 import Login from './pages/Login';
-import { DEMO } from './lib/env';
 
 const Portal = lazy(() => import('./pages/portal/Portal'));
-// El panel de colaboradores es un ejemplo con datos de prueba: solo existe en el modo demo (en producción no se incluye).
-const Panel = DEMO ? lazy(() => import('./pages/panel/Panel')) : null;
+const Panel = lazy(() => import('./pages/panel/Panel'));
 
 const Loading = () => <div className="flex min-h-screen items-center justify-center"><Spinner className="h-8 w-8" /></div>;
 
@@ -35,7 +33,7 @@ export default function App() {
           <Route path="/" element={<Landing />} />
           <Route path="/ingresar" element={<Login />} />
           <Route path="/portal" element={<Protected role="socio"><Portal /></Protected>} />
-          {DEMO && <Route path="/panel" element={<Protected role="colaborador"><Panel /></Protected>} />}
+          <Route path="/panel" element={<Protected role="colaborador"><Panel /></Protected>} />
           <Route path="*" element={<div className="flex min-h-screen flex-col items-center justify-center gap-4 text-center"><h1 className="text-6xl font-bold text-gold-grad">404</h1><p className="text-muted">No encontramos esa página.</p><Link to="/" className="btn-gold">Volver al inicio</Link></div>} />
         </Routes>
       </Suspense>

@@ -47,7 +47,7 @@ async function call(method, path, body) {
   return b;
 }
 // Mensaje para una respuesta con error: el del servidor si lo trae; si el servicio no responde (5xx / ruta inexistente), uno claro para el socio.
-const failMsg = (res) => serverMessage(res.body) || (res.status >= 500 || res.status === 404 ? 'El servicio no está disponible en este momento. Intentá de nuevo en unos minutos.' : `El servidor respondió con el código ${res.status}.`);
+const failMsg = (res) => serverMessage(res.body) || (res.status >= 500 || res.status === 404 || res.status === 405 ? `No pudimos conectar con el servidor de FINIX. Intentá de nuevo en unos minutos. (código ${res.status})` : `El servidor respondió con el código ${res.status}.`);
 const num = (v) => { const n = Number(v); return Number.isFinite(n) ? n : 0; };
 const clamp = (n, a, b) => Math.min(b, Math.max(a, n));
 const strip = (s = '') => String(s).normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();

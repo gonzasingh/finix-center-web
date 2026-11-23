@@ -48,7 +48,8 @@ export function HomeView({ user, data, go, unread }) {
   const { active, saldo, next } = summarize(data);
   const pending = data.requests.filter((r) => !FINAL_REQUEST_STATES.includes(r.estado)).length;
   return (
-    <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1.35fr)_minmax(0,1fr)]">
+    // En escritorio la columna izquierda mide 34rem, igual que la cuadrícula de atajos, para que la tarjeta dorada no sea más ancha que ellos.
+    <div className="mx-auto grid max-w-[34rem] grid-cols-1 gap-6 lg:max-w-none lg:grid-cols-[34rem_minmax(0,1fr)]">
       <div className="min-w-0 space-y-6">
         <section className="relative overflow-hidden rounded-[14px] px-5 py-4 text-white shadow-gold-lg" style={{ backgroundImage: 'linear-gradient(132deg, #8D6E2D 3%, #DDB85F 90%)' }}>
           <CardEmblem />

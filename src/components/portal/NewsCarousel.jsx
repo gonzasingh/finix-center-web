@@ -1,11 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
 
 // Una novedad: texto a la izquierda (etiqueta, título y bajada) y una imagen chica a la derecha.
-function NewsCard({ n, onOpen, single, index, total }) {
+function NewsCard({ n, onOpen, index, total }) {
   const [broken, setBroken] = useState(false);
   return (
     <button onClick={() => onOpen(n)} disabled={!n.action} aria-label={`${n.title}. Novedad ${index + 1} de ${total}`}
-      className={`flex min-h-[9.75rem] shrink-0 snap-start items-stretch overflow-hidden rounded-3xl border border-line/15 bg-surface/70 p-2.5 text-left transition enabled:active:scale-[.99] disabled:cursor-default ${single ? 'w-full' : 'w-[88%]'}`}>
+      className={`flex min-h-[9.75rem] w-full shrink-0 snap-start items-stretch overflow-hidden rounded-3xl border border-line/15 bg-surface/70 p-2.5 text-left transition enabled:active:scale-[.99] disabled:cursor-default`}>
       <span className="flex min-w-0 flex-1 flex-col justify-center gap-1.5 py-2 pl-3 pr-2">
         {n.tag && <span className="inline-flex self-start rounded-full bg-gold-500/15 px-3 py-1 text-xs font-semibold text-gold-ink">{n.tag}</span>}
         <span className="text-[17px] font-bold leading-snug">{n.title}</span>
@@ -49,8 +49,8 @@ export default function NewsCarousel({ items, onOpen, autoplayMs = 6000 }) {
   return (
     <div role="region" aria-roledescription="carrusel" aria-label="Novedades">
       <div ref={ref} onScroll={onScroll} onPointerDown={hold} onPointerUp={release} onPointerCancel={release} onTouchStart={hold} onTouchEnd={release}
-        className="no-scrollbar -mx-4 flex snap-x snap-mandatory gap-3 overflow-x-auto overscroll-x-contain scroll-px-4 px-4 sm:mx-0 sm:scroll-px-0 sm:px-0">
-        {items.map((n, i) => <NewsCard key={n.id} n={n} onOpen={onOpen} single={count === 1} index={i} total={count} />)}
+        className="no-scrollbar flex snap-x snap-mandatory gap-3 overflow-x-auto overscroll-x-contain">
+        {items.map((n, i) => <NewsCard key={n.id} n={n} onOpen={onOpen} index={i} total={count} />)}
       </div>
       {count > 1 && (
         <div className="mt-3 flex justify-center gap-2">

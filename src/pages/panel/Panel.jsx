@@ -4,7 +4,6 @@ import { LayoutDashboard, Users, Wallet, FileCheck2, ScrollText, LogOut, RotateC
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
 import { api } from '../../services';
-import { USE_FIREBASE } from '../../lib/env';
 import { initials } from '../../lib/format';
 import Logo from '../../components/common/Logo';
 import ThemeToggle from '../../components/common/ThemeToggle';
@@ -52,7 +51,7 @@ export default function Panel() {
         <nav className="flex-1 space-y-1" aria-label="Panel">
           {SECTIONS.map(([k, Icon, l]) => <button key={k} onClick={() => setSection(k)} className={`flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-sm font-medium transition ${section === k ? 'bg-gold-grad text-ink shadow-gold' : 'text-muted hover:bg-line/10 hover:text-fg'}`}><Icon className="h-[18px] w-[18px]" />{l}{k === 'solicitudes' && pending > 0 && <span className={`ml-auto rounded-full px-2 py-0.5 text-[10px] font-bold ${section === k ? 'bg-ink/20' : 'bg-gold-400/20 text-gold-300'}`}>{pending}</span>}</button>)}
         </nav>
-        {!USE_FIREBASE && <button onClick={reset} className="btn-ghost btn-sm mb-3 justify-start"><RotateCcw className="h-4 w-4" />Restablecer demo</button>}
+        <button onClick={reset} className="btn-ghost btn-sm mb-3 justify-start"><RotateCcw className="h-4 w-4" />Restablecer demo</button>
         <div className="card-flat flex items-center gap-3 p-3"><span className="flex h-10 w-10 items-center justify-center rounded-full bg-gold-grad text-sm font-bold text-ink">{initials(user.displayName)}</span><div className="min-w-0 flex-1"><p className="truncate text-sm font-semibold">{user.displayName}</p><p className="truncate text-[11px] text-muted">Colaborador</p></div><ThemeToggle className="!h-9 !w-9" /></div>
         <button onClick={doLogout} className="btn-ghost mt-2 justify-start text-rose-400"><LogOut className="h-4 w-4" />Cerrar sesión</button>
       </aside>

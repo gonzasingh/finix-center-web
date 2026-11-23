@@ -22,6 +22,6 @@ export const initials = (name = '') => name.split(' ').filter(Boolean).slice(0, 
 export const firstName = (name = '') => name.split(' ')[0] || '';
 export const greeting = () => {
   const h = Number(new Date().toLocaleTimeString('es-AR', { timeZone: TZ, hour: '2-digit', hour12: false }));
-  return h < 12 ? 'Buen día' : h < 20 ? 'Buenas tardes' : 'Buenas noches';
+  return h < 12 ? 'Buenos días' : h < 20 ? 'Buenas tardes' : 'Buenas noches';
 };
 export const normalize = (s = '') => s.toString().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');

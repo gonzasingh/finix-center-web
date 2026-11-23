@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Editor de novedades · FINIX</title>
+<style>
+*{box-sizing:border-box}body{margin:0;font:14px/1.45 system-ui,Segoe UI,Arial,sans-serif;background:#f6f1e7;color:#2a2013}
+header{padding:14px 20px;background:#fff;border-bottom:1px solid #e7dcc3;display:flex;gap:10px;align-items:center;flex-wrap:wrap;position:sticky;top:0;z-index:5}
+header h1{font-size:17px;margin:0 auto 0 0}main{max-width:1000px;margin:0 auto;padding:18px;display:grid;gap:16px}
+button,.btn{font:inherit;border:1px solid #c9a24d;background:#fff;color:#6b5320;padding:7px 12px;border-radius:9px;cursor:pointer}
+button.gold{background:linear-gradient(135deg,#a98534,#e0bd66);color:#2a1d05;border:0;font-weight:600}button.danger{border-color:#d9a0a0;color:#a33}
+button:disabled{opacity:.4;cursor:default}
+.item{background:#fff;border:1px solid #e7dcc3;border-radius:14px;padding:14px;display:grid;grid-template-columns:1fr 330px;gap:16px}
+@media(max-width:820px){.item{grid-template-columns:1fr}}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.full{grid-column:1/-1}
+label{display:grid;gap:3px;font-size:12px;color:#7a6a4a;font-weight:600}
+input,select,textarea{font:inherit;padding:7px 9px;border:1px solid #d9ccae;border-radius:8px;width:100%;background:#fffdf8;color:#2a2013}
+.row{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-top:10px}
+.card{display:flex;min-height:150px;border:1px solid #e7dcc3;border-radius:22px;padding:9px;background:#fffaf0;gap:6px}
+.card .t{flex:1;display:flex;flex-direction:column;justify-content:center;gap:5px;padding:6px 8px 6px 10px;min-width:0}
+.chip{align-self:flex-start;background:#f3e4bd;color:#7a5a14;border-radius:99px;padding:3px 11px;font-size:12px;font-weight:600}
+.card h3{margin:0;font-size:17px;line-height:1.25}.card p{margin:0;font-size:13px;color:#7a6a4a}
+.card .im{width:38%;border-radius:16px;background:linear-gradient(135deg,#e9d49b66,#c9a24d22);position:relative;overflow:hidden;flex:none}
+.card .im img{position:absolute;inset:0;width:100%;height:100%}
+.off{opacity:.55}.note{font-size:12px;color:#7a6a4a}.warn{color:#a33;font-size:12px;min-height:16px}
+</style></head><body>
+<header><h1>Editor de novedades FINIX</h1>
+<label class="btn" style="display:inline-block;margin:0">Abrir novedades.json<input id="file" type="file" accept=".json,application/json" hidden></label>
+<button id="fromUrl">Abrir desde internet…</button><button id="add">+ Nueva novedad</button>
+<button id="copy">Copiar JSON</button><button class="gold" id="save">Descargar novedades.json</button></header>
+<main><p class="note">1) Abrí tu <b>novedades.json</b> actual (o empezá de cero). 2) Editá, mirá la vista previa. 3) Descargá el archivo y subilo a tu repositorio de GitHub reemplazando al anterior. La app lo toma sola en pocos minutos. Las imágenes se escriben como dirección (ej. <code>img/promo.png</code> si las subís a la misma carpeta).</p>
+<div id="list"></div></main>
+<script>
+let data={version:1,banners:[]};
+const $=s=>document.querySelector(s),list=$('#list');
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const SECC=['simulador','requisitos','sucursales','atencion','nosotros','creditos','solicitudes','avisos','perfil'];
+let baseUrl='';
+const blank=()=>({id:'novedad-'+Date.now().toString(36),activo:true,desde:'',hasta:'',etiqueta:'',titulo:'Nueva novedad',texto:'',imagen:'',ajuste:'contener',destino:{tipo:'ninguno'}});
+function load(j,base){const b=Array.isArray(j)?j:j.banners;if(!Array.isArray(b))throw new Error('El archivo no tiene una lista "banners".');data={...(Array.isArray(j)?{}:j),version:1,banners:b.map(x=>({...blank(),...x,destino:x.destino||{tipo:'ninguno'}}))};baseUrl=base||'';render()}
+function img(b){if(!b.imagen)return'';try{return new URL(b.imagen,baseUrl||location.href).href}catch{return b.imagen}}
+function render(){list.innerHTML=data.banners.map((b,i)=>{const d=b.destino||{};return`<div class="item ${b.activo?'':'off'}" data-i="${i}">
+<div><div class="grid">
+<label>Título<input data-k="titulo" value="${esc(b.titulo)}" maxlength="90"></label>
+<label>Etiqueta (chip)<input data-k="etiqueta" value="${esc(b.etiqueta)}" maxlength="28"></label>
+<label class="full">Texto<textarea data-k="texto" rows="2" maxlength="140">${esc(b.texto)}</textarea></label>
+<label>Imagen (dirección)<input data-k="imagen" value="${esc(b.imagen)}" placeholder="img/promo.png o https://…"></label>
+<label>Ajuste de la imagen<select data-k="ajuste"><option value="contener" ${b.ajuste==='contener'?'selected':''}>Contener (ícono/ilustración)</option><option value="cubrir" ${b.ajuste==='cubrir'?'selected':''}>Cubrir (foto)</option></select></label>
+<label>Al tocar…<select data-k="dtipo"><option value="ninguno" ${!d.tipo||d.tipo==='ninguno'?'selected':''}>No hace nada</option><option value="web" ${d.tipo==='web'?'selected':''}>Abrir una página web</option><option value="app" ${d.tipo==='app'?'selected':''}>Ir a una sección de la app</option></select></label>
+<label>${d.tipo==='app'?'Sección':'Página (dirección)'}${d.tipo==='app'?`<select data-k="dseccion">${SECC.map(s=>`<option ${d.seccion===s?'selected':''}>${s}</option>`).join('')}</select>`:`<input data-k="durl" value="${esc(d.url)}" placeholder="pagina.html o https://…" ${d.tipo==='web'?'':'disabled'}>`}</label>
+<label>Mostrar desde<input type="date" data-k="desde" value="${esc(b.desde)}"></label><label>Mostrar hasta (inclusive)<input type="date" data-k="hasta" value="${esc(b.hasta)}"></label>
+<label>Identificador (sin espacios)<input data-k="id" value="${esc(b.id)}"></label>
+<label style="grid-auto-flow:column;justify-content:start;align-items:center;gap:8px;margin-top:18px"><input type="checkbox" data-k="activo" ${b.activo?'checked':''} style="width:auto">Activa (se muestra en la app)</label></div>
+<div class="row"><button data-a="up" ${i?'':'disabled'}>↑ Subir</button><button data-a="down" ${i<data.banners.length-1?'':'disabled'}>↓ Bajar</button><button data-a="dup">Duplicar</button><button class="danger" data-a="del">Eliminar</button></div><div class="warn">${warn(b)}</div></div>
+<div><div class="note" style="margin-bottom:4px">Vista previa</div><div class="card"><div class="t">${b.etiqueta?`<span class="chip">${esc(b.etiqueta)}</span>`:''}<h3>${esc(b.titulo)}</h3><p>${esc(b.texto)}</p></div>${b.imagen?`<div class="im"><img src="${esc(img(b))}" style="object-fit:${b.ajuste==='cubrir'?'cover':'contain'};${b.ajuste==='cubrir'?'':'padding:10px'}" onerror="this.style.display='none'"></div>`:''}</div></div></div>`}).join('')||'<p class="note">Todavía no hay novedades. Tocá “+ Nueva novedad”.</p>'}
+function warn(b){const w=[];if(!b.titulo.trim())w.push('Falta el título.');if(b.desde&&b.hasta&&b.desde>b.hasta)w.push('“Desde” es posterior a “hasta”.');
+const d=b.destino||{};if(d.tipo==='web'&&!/^(https:\/\/|[^:]+$)/.test(d.url||''))w.push('La página web debe empezar con https:// (o ser un archivo de la misma carpeta).');
+if(b.imagen&&/^http:\/\//.test(b.imagen))w.push('La imagen debe ser https://.');return w.join(' ')}
+list.addEventListener('input',e=>{const t=e.target,k=t.dataset.k;if(!k)return;const i=+t.closest('.item').dataset.i,b=data.banners[i];
+const v=t.type==='checkbox'?t.checked:t.value;
+if(k==='dtipo'){b.destino=v==='ninguno'?{tipo:'ninguno'}:v==='web'?{tipo:'web',url:''}:{tipo:'app',seccion:'sucursales'};render();return}
+if(k==='dseccion')b.destino.seccion=v;else if(k==='durl')b.destino.url=v;else b[k]=v;
+if(k==='activo'||k==='ajuste'||k==='dseccion'||t.type==='date')render();else{const keep=document.activeElement;const pos=t.selectionStart;render();const el=document.querySelector(`.item[data-i="${i}"] [data-k="${k}"]`);if(el){el.focus();try{el.setSelectionRange(pos,pos)}catch{}}}});
+list.addEventListener('click',e=>{const a=e.target.dataset.a;if(!a)return;const i=+e.target.closest('.item').dataset.i,L=data.banners;
+if(a==='up'&&i>0)[L[i-1],L[i]]=[L[i],L[i-1]];if(a==='down'&&i<L.length-1)[L[i+1],L[i]]=[L[i],L[i+1]];
+if(a==='dup')L.splice(i+1,0,{...JSON.parse(JSON.stringify(L[i])),id:L[i].id+'-copia'});if(a==='del'&&confirm('¿Eliminar esta novedad?'))L.splice(i,1);render()});
+function out(){const banners=data.banners.map(b=>{const d=b.destino||{};const o={id:b.id.trim().replace(/\s+/g,'-'),activo:!!b.activo,desde:b.desde||'',hasta:b.hasta||'',etiqueta:b.etiqueta.trim(),titulo:b.titulo.trim(),texto:b.texto.trim(),imagen:b.imagen.trim(),ajuste:b.ajuste};
+if(d.tipo==='web'&&d.url)o.destino={tipo:'web',url:d.url.trim()};else if(d.tipo==='app')o.destino={tipo:'app',seccion:d.seccion};return o});
+return JSON.stringify({_leeme:data._leeme||'Editá este archivo para cambiar las novedades de la app. Mirá LEEME-NOVEDADES.md.',version:1,banners},null,2)+'\n'}
+$('#add').onclick=()=>{data.banners.unshift(blank());render()};
+$('#file').onchange=async e=>{const f=e.target.files[0];if(!f)return;try{load(JSON.parse(await f.text()),'')}catch(err){alert('No se pudo leer el archivo: '+err.message)}e.target.value=''};
+$('#fromUrl').onclick=async()=>{const u=prompt('Dirección del novedades.json publicado:','https://gonzasingh.github.io/finix-novedades/novedades.json');if(!u)return;try{const r=await fetch(u,{cache:'no-store'});if(!r.ok)throw new Error('HTTP '+r.status);load(await r.json(),u)}catch(err){alert('No se pudo abrir: '+err.message)}};
+$('#copy').onclick=async()=>{try{await navigator.clipboard.writeText(out());alert('JSON copiado.')}catch{prompt('Copiá este texto:',out())}};
+$('#save').onclick=()=>{const bad=data.banners.map(warn).filter(Boolean);if(bad.length&&!confirm('Hay avisos pendientes:\n'+bad.join('\n')+'\n\n¿Descargar igual?'))return;const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([out()],{type:'application/json'}));a.download='novedades.json';a.click()};
+render();
+</script></body></html>

@@ -32,9 +32,21 @@ html.light {
   .label { @apply mb-1.5 block text-xs font-semibold uppercase tracking-wider text-muted; }
   .eyebrow { @apply inline-flex items-center gap-2 rounded-full border border-line/30 bg-line/10 px-3.5 py-1 text-[11px] font-semibold uppercase tracking-[.14em] text-gold-300; }
   html.light .eyebrow { @apply text-gold-700; }
-  .th { @apply px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-muted; }
-  .td { @apply px-4 py-3.5 text-sm; }
+  .text-gold-ink { @apply text-gold-300; }
+  html.light .text-gold-ink { @apply text-gold-700; }
+  .th { @apply px-2.5 py-3 text-left sm:px-4 text-[11px] font-semibold uppercase tracking-wider text-muted; }
+  .td { @apply px-2.5 py-3 text-xs sm:px-4 sm:py-3.5 sm:text-sm; }
 }
+
+@layer utilities {
+  .no-scrollbar { scrollbar-width: none; }
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+}
+
+/* Portal del socio, tema claro: las tarjetas blancas van sin sombra gris. Las sombras doradas (tarjeta de saldo, botón) se conservan,
+   y la barra inferior / ventanas emergentes mantienen una sombra muy suave para que floten sobre el contenido. */
+html.light .portal [class*="shadow-glass"] { box-shadow: 0 10px 30px -12px rgba(23, 17, 10, .16); }
+html.light .portal .card { box-shadow: none; }
 
 .text-gold-grad { background: linear-gradient(120deg, #F3DE97 0%, #E2BF60 40%, #B08B3C 100%); -webkit-background-clip: text; background-clip: text; color: transparent; }
 html.light .text-gold-grad { background: linear-gradient(120deg, #B08B3C 0%, #8A6A2C 100%); -webkit-background-clip: text; background-clip: text; color: transparent; }

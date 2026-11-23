@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Home, Wallet, MessageSquareText, Bell, User } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
@@ -6,11 +6,13 @@ import { useToast } from '../../context/ToastContext';
 import { api } from '../../services';
 import Logo from '../../components/common/Logo';
 import ThemeToggle from '../../components/common/ThemeToggle';
+import NewsWebView from '../../components/portal/NewsWebView';
 import { Skeleton, ErrorBox } from '../../components/dashboard/ui';
 import { HomeView, CreditsView, StatementView, SimulatorView, RequestsView, RequestDetailView, NoticesView, ProfileView, RequirementsView, BranchesView, SupportView, AboutView, buildNotices } from './views';
 
 const NAV = [['home', Home, 'Inicio'], ['creditos', Wallet, 'Créditos'], ['solicitudes', MessageSquareText, 'Solicitudes'], ['avisos', Bell, 'Avisos'], ['perfil', User, 'Perfil']];
-const GROUP = { estado: 'creditos', solicitud: 'solicitudes', simulador: 'solicitudes' };
+const GROUP = { estado: 'creditos', solicitud: 'solicitudes', simulador: 'solicitudes', novedad: 'home' };
+const REFRESH_AFTER_MS = 60 * 1000; // al volver a la pestaña, si pasó más de un minuto se actualizan los datos
 
 export default function Portal() {
   const { user, logout } = useAuth();
@@ -22,8 +24,18 @@ export default function Portal() {
   const [read, setRead] = useState(new Set());
   const cur = stack[stack.length - 1];
 
-  const load = useCallback(() => api.getSocioOverview(user).then(setData).catch(() => setError('No pudimos cargar tu información. Intentá nuevamente.')), [user]);
+  const lastLoad = useRef(0);
+  // Si la sesión venció (401) el proveedor ya la cerró y se vuelve al ingreso: no se muestra un error de carga.
+  const load = useCallback(() => {
+    lastLoad.current = Date.now();
+    return api.getSocioOverview(user).then((d) => { setData(d); setError(''); }).catch((err) => { if (err?.status !== 401) setError(err?.name === 'ApiError' ? err.message : 'No pudimos cargar tu información. Intentá nuevamente.'); });
+  }, [user]);
   useEffect(() => { load(); }, [load]);
+  useEffect(() => {
+    const onVisible = () => { if (document.visibilityState === 'visible' && Date.now() - lastLoad.current > REFRESH_AFTER_MS) load(); };
+    document.addEventListener('visibilitychange', onVisible);
+    return () => document.removeEventListener('visibilitychange', onVisible);
+  }, [load]);
 
   const go = (view, param) => { setStack((s) => [...s, { view, param }]); window.scrollTo({ top: 0 }); };
   const tab = (view) => { setStack([{ view }]); window.scrollTo({ top: 0 }); };
@@ -35,12 +47,21 @@ export default function Portal() {
 
   const submitRequest = async (payload) => {
     try { await api.createRequest(user, payload); toast('¡Solicitud enviada! Podés seguirla en “Mis solicitudes”.'); await load(); setStack([{ view: 'home' }, { view: 'solicitudes' }]); }
-    catch { toast('No pudimos enviar la solicitud. Intentá de nuevo.', 'error'); }
+    catch (err) { toast(err?.message || 'No pudimos enviar la solicitud. Intentá de nuevo.', 'error'); }
   };
+  // Avisos: se marcan como leídos en el servidor (y al instante en pantalla).
+  const readAll = () => { setRead(new Set(notices.map((n) => n.id))); api.markAllNoticesRead().catch(() => {}); };
+  const openNotice = (n) => {
+    if (n.unread && !read.has(n.id)) { setRead((s) => new Set([...s, n.id])); api.markNoticeRead(n.id).catch(() => {}); }
+    const t = `${n.tipo || ''} ${n.ruta || ''}`.toLowerCase();
+    if (/solicitud|crm/.test(t)) { if (n.refId && data.requests.some((r) => r.id === n.refId)) go('solicitud', n.refId); else go('solicitudes'); }
+    else if (/credito|cuota|pago/.test(t)) { if (n.refId && data.credits.some((c) => c.id === n.refId)) go('estado', n.refId); else go('creditos'); }
+  };
+  const changePassword = async (f) => { const msg = await api.changePassword(f); toast(msg); };
   const doLogout = async () => { await logout(); nav('/ingresar', { replace: true }); };
 
   const render = () => {
-    if (error) return <ErrorBox text={error} />;
+    if (error) return <div className="mx-auto max-w-lg space-y-4"><ErrorBox text={error} /><button className="btn-gold" onClick={() => { setError(''); load(); }}>Reintentar</button></div>;
     if (!data) return <div className="grid gap-6 lg:grid-cols-[1.35fr_1fr]"><Skeleton className="h-72" /><Skeleton className="h-72" /></div>;
     const p = { data, go, back, user };
     switch (cur.view) {
@@ -50,8 +71,9 @@ export default function Portal() {
       case 'simulador': return <SimulatorView back={back} onSubmit={submitRequest} />;
       case 'solicitudes': return <RequestsView {...p} />;
       case 'solicitud': return <RequestDetailView {...p} id={cur.param} />;
-      case 'avisos': return <NoticesView notices={notices} read={read} onRead={() => setRead(new Set(notices.map((n) => n.id)))} back={back} />;
-      case 'perfil': return <ProfileView {...p} onLogout={doLogout} />;
+      case 'avisos': return <NoticesView notices={notices} read={read} onRead={readAll} onOpen={openNotice} back={back} />;
+      case 'perfil': return <ProfileView {...p} onLogout={doLogout} onChangePassword={data.source === 'api' ? changePassword : undefined} />;
+      case 'novedad': return <NewsWebView id={cur.param} onBack={back} />;
       case 'requisitos': return <RequirementsView back={back} />;
       case 'sucursales': return <BranchesView back={back} />;
       case 'atencion': return <SupportView back={back} />;
@@ -61,7 +83,7 @@ export default function Portal() {
   };
 
   return (
-    <div className="min-h-screen pb-28 lg:pb-10">
+    <div className="portal min-h-screen pb-28 lg:pb-10">
       <header className="sticky top-0 z-40 border-b border-line/15 bg-base/80 backdrop-blur-2xl">
         <div className="mx-auto flex h-[72px] max-w-6xl items-center justify-between gap-4 px-4 sm:px-6">
           <button onClick={() => tab('home')} aria-label="Inicio"><Logo className="h-12" /></button>

@@ -3,10 +3,12 @@
   "private": true,
   "version": "1.0.0",
   "type": "module",
-  "description": "Sitio institucional + portal de socios + panel de colaboradores de FINIX Center",
+  "description": "Sitio institucional + portal de socios de FINIX Center (conectado a la API real de FINIX)",
   "scripts": {
-    "dev": "vite",
+    "dev": "vite --mode demo",
+    "dev:real": "vite",
     "build": "vite build && node scripts/postbuild.mjs",
+    "build:demo": "vite build --mode demo",
     "build:preview": "vite build --mode preview",
     "preview": "vite preview",
     "seed": "node scripts/seed.mjs"

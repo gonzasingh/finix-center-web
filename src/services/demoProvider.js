@@ -1,4 +1,4 @@
-// Proveedor de datos DEMO: persiste en localStorage del navegador. No requiere Firebase.
+// Proveedor de datos DEMO: persiste en el navegador y no necesita servidor. Solo para desarrollo y vistas previas (nunca en el build de producción).
 import { buildDemoData, DEMO_STAFF, DEMO_SOCIO_PASSWORD } from './demoData';
 import { validateClient, cleanClient, auditEntry, applyReview, newRequest } from './logic';
 import { diff, CLIENT_LABELS, isWednesday } from '../lib/credit';
@@ -113,3 +113,8 @@ export async function reviewRequest(actor, id, action, comentario = '') {
   return clone(req);
 }
 export async function resetDemo() { db = buildDemoData(); save(); }
+
+// Avisos y contraseña: en el modo demo los avisos se derivan en la app y la contraseña no se modifica (no hay servidor).
+export async function markNoticeRead() {}
+export async function markAllNoticesRead() {}
+export async function changePassword() { await wait(300); return 'Modo demo: la contraseña no se modifica.'; }

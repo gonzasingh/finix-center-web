@@ -2,7 +2,7 @@
 export const BUSINESS = {
   name: 'FINIX Center',
   whatsapp: '5493876529011',
-  whatsappDisplay: '+54 9 3876 529011',
+  whatsappDisplay: '+54 9 3876 52-9011',
   email: '', // TODO: completar el mail institucional (si queda vacío no se muestra)
   hours: 'Lunes a Viernes 09:00 - 18:00 hs',
   headquarters: 'Casa Central: Tucumán, Argentina',
@@ -37,14 +37,17 @@ export const BUSINESS = {
   // (ej.: buyMarginPct: -2 muestra "Compramos" un 2% por debajo del blue). En 0 se muestra el valor del mercado sin tocar.
   usdLive: { enabled: true, refreshMs: 5 * 60 * 1000, buyMarginPct: 0, sellMarginPct: 0 },
   branches: [
-    { name: 'Sucursal Metán', address: 'Belgrano Este 42, piso 2 oficina 16, San José de Metán, Salta', hours: '09 a 18 hs', phone: '387 652-9011' },
-    { name: 'Casa Central Tucumán', address: 'Av. Sarmiento 1240', hours: '09 a 18 hs', phone: '381 555-0110' },
+    { name: 'Sucursal Metán', address: 'Belgrano Este 42, piso 2 oficina 16, San José de Metán, Salta', hours: '09 a 18 hs', phone: '+54 9 3876 52-9011' },
+    { name: 'Casa Central Tucumán', address: 'Av. Sarmiento 1240', mapQuery: 'Av. Sarmiento 1240, San Miguel de Tucumán, Tucumán', hours: '09 a 18 hs', phone: '381 555-0110' },
   ],
   requirements: {
     personal: ['Recibo de sueldo (antigüedad 1 año)', 'D.N.I.', 'Boleta de servicios'],
     comercial: ['Titular de comercio (dueño)', 'D.N.I.', 'Boleta de servicio'],
   },
 };
+
+// Enlace de llamada: conserva el "+" para que funcione desde cualquier celular (ej.: +54 9 3876 52-9011 -> tel:+5493876529011).
+export const telLink = (phone = '') => `tel:${String(phone).replace(/[^\d+]/g, '')}`;
 
 export const waLink = (text = 'Hola FINIX Center, quisiera consultar por sus servicios financieros.') =>
   `https://wa.me/${BUSINESS.whatsapp}?text=${encodeURIComponent(text)}`;

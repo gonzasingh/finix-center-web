@@ -22,6 +22,8 @@ export const nextWeekday = (weekday, from = new Date()) => {
 
 // Estadísticas derivadas de un crédito (se guardan solo cuotas, valor y cuotas pagas).
 export function creditStats(c) {
+  // Créditos reales de la API: los importes vienen calculados por el servidor.
+  if (c.real) return { total: c.real.total, pagado: c.real.pagado, saldo: c.real.saldo, avance: c.real.avance, restantes: c.real.restantes };
   const total = c.valorCuota * c.cuotas;
   const pagado = c.valorCuota * c.cuotasPagas;
   return { total, pagado, saldo: total - pagado, avance: Math.round((c.cuotasPagas / c.cuotas) * 100), restantes: c.cuotas - c.cuotasPagas };
@@ -36,8 +38,15 @@ export function buildSchedule(c, now = new Date()) {
     return { n: i + 1, due, monto: c.valorCuota, estado };
   });
 }
-export const nextInstallment = (c, now) => (c.estado === 'activo' ? buildSchedule(c, now).find((q) => q.estado !== 'pagada') : null);
+export const nextInstallment = (c, now) => {
+  if (c.estado !== 'activo') return null;
+  if (c.real) return c.proximoVencimiento ? { n: null, due: new Date(c.proximoVencimiento), monto: c.proximaCuota ?? c.valorCuota, estado: c.alerta === 'atraso' ? 'vencida' : 'pendiente' } : null;
+  return buildSchedule(c, now).find((q) => q.estado !== 'pagada');
+};
 export const overdueCount = (c, now) => (c.estado === 'activo' ? buildSchedule(c, now).filter((q) => q.estado === 'vencida').length : 0);
+
+// Etiqueta del plan: los créditos reales pueden traer un plan que no está en la configuración local.
+export const planLabel = (c) => BUSINESS.plans[c.plan]?.label || c.planTexto || '—';
 
 // Score de pago (0-100).
 export function scoreInfo(score = 0) {
@@ -52,9 +61,16 @@ export const REQUEST_STATES = {
   en_revision: { label: 'En revisión', tone: 'gold' },
   observada: { label: 'Observada', tone: 'amber' },
   correccion_recibida: { label: 'Corrección recibida', tone: 'violet' },
+  preaprobada: { label: 'Preaprobada', tone: 'violet' },
   aprobada: { label: 'Aprobada', tone: 'emerald' },
+  autorizada: { label: 'Autorizada', tone: 'emerald' },
+  credito_otorgado: { label: 'Crédito otorgado', tone: 'emerald' },
   rechazada: { label: 'Rechazada', tone: 'rose' },
 };
+// Estados en los que la solicitud ya no está "en curso".
+export const FINAL_REQUEST_STATES = ['aprobada', 'autorizada', 'credito_otorgado', 'rechazada'];
+// Estado de una solicitud con respaldo para códigos que la app todavía no conoce (usa el nombre que informa el servidor).
+export const reqState = (estado, nombre) => REQUEST_STATES[estado] || { label: nombre || String(estado || 'Sin estado'), tone: 'gray' };
 export const requestDetail = {
   ingresada: 'Se actualizó el estado de tu solicitud',
   en_revision: 'La empresa comenzó a revisar tu solicitud',
@@ -62,6 +78,9 @@ export const requestDetail = {
   correccion_recibida: 'Enviaste una corrección',
   aprobada: 'Tu solicitud fue aprobada',
   rechazada: 'Tu solicitud no pudo ser aprobada',
+  preaprobada: 'Tu solicitud fue preaprobada',
+  autorizada: 'Tu solicitud fue autorizada',
+  credito_otorgado: 'Se otorgó tu crédito',
 };
 export const nextCreditNumber = (legajo, credits) => {
   const n = credits.filter((c) => c.clientId && String(c.numero).startsWith(`${legajo}/`)).length;

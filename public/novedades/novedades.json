@@ -1,0 +1,42 @@
+{
+  "_leeme": "Editá este archivo para cambiar las novedades de la app. No hace falta actualizar la app. Mirá LEEME-NOVEDADES.md.",
+  "version": 1,
+  "banners": [
+    {
+      "id": "supermiercoles",
+      "activo": true,
+      "desde": "",
+      "hasta": "",
+      "etiqueta": "Promo",
+      "titulo": "¡Llegan los SUPERMIÉRCOLES!",
+      "texto": "Pedí tu crédito un miércoles y accedé a una tasa preferencial.",
+      "imagen": "img/supermiercoles.svg",
+      "ajuste": "contener",
+      "destino": { "tipo": "web", "url": "supermiercoles.html" }
+    },
+    {
+      "id": "sucursales",
+      "activo": true,
+      "desde": "",
+      "hasta": "",
+      "etiqueta": "Estamos cerca",
+      "titulo": "Encontrá tu sucursal",
+      "texto": "Mirá dirección, horarios y cómo llegar.",
+      "imagen": "img/sucursales.svg",
+      "ajuste": "contener",
+      "destino": { "tipo": "app", "seccion": "sucursales" }
+    },
+    {
+      "id": "atencion",
+      "activo": true,
+      "desde": "",
+      "hasta": "",
+      "etiqueta": "Te ayudamos",
+      "titulo": "¿Tenés una consulta?",
+      "texto": "Escribinos por WhatsApp o llamanos.",
+      "imagen": "img/atencion.svg",
+      "ajuste": "contener",
+      "destino": { "tipo": "app", "seccion": "atencion" }
+    }
+  ]
+}

@@ -1,52 +1,59 @@
-# FINIX Center · Sitio institucional + Portal de socios + Panel de colaboradores
+# FINIX Center · Sitio institucional + Portal de socios
 
-Proyecto completo en **React + Vite + Tailwind CSS + Firebase (Auth y Firestore)**, listo para subir a **GitHub** y publicar en **Vercel**.
+Proyecto en **React + Vite + Tailwind CSS**, listo para subir a **GitHub** y publicar en **Vercel**. El portal de socios trabaja con **los datos reales de FINIX**: la misma API AdmCloud (`nuevo.mine.nu`, empresa `FINIX`) que usa la app Android de socios.
 
 | Ruta | Qué es | Quién accede |
 |------|--------|--------------|
 | `/` | Sitio institucional (hero con simulador, beneficios, cómo funciona, app, nosotros, dólar, FAQ) | Público |
-| `/ingresar` | Inicio de sesión (pestañas *Soy socio* / *Soy colaborador*) | Público |
-| `/portal` | Dashboard del socio: saldo, próxima cuota, créditos, estado de cuenta, solicitudes, avisos, perfil | Rol `socio` |
-| `/panel` | Dashboard del colaborador: socios, créditos, solicitudes y auditoría | Rol `colaborador` |
+| `/ingresar` | Inicio de sesión del socio (DNI + contraseña) | Público |
+| `/portal` | Portal del socio: saldo, próxima cuota, créditos, estado de cuenta, solicitudes, avisos, perfil, cambio de contraseña | Socios (cuenta real) |
 
-## 1. Probarlo en local (modo demo, sin Firebase)
+> El **panel de colaboradores** (`/panel`) y el acceso "Soy colaborador" son un ejemplo con datos de prueba: **solo existen en el modo demo** y no se incluyen en el sitio publicado. La gestión real se hace en AdmCloud.
+
+## 1. Probarlo en local
 
 ```bash
 npm install
-npm run dev          # http://localhost:5173
+npm run dev          # http://localhost:5173  -> MODO DEMO (datos de ejemplo, sin servidor)
+npm run dev:real     # http://localhost:5173  -> conectado al servidor REAL de FINIX
 ```
 
-Sin variables de entorno el sitio corre en **modo demo** con datos de ejemplo guardados en el navegador:
+**Modo demo** (`npm run dev`): datos de ejemplo guardados en el navegador, sin tocar el servidor real. Credenciales de prueba (no se muestran en la pantalla de ingreso):
 
 - Socio: Mateo E. Gomez · DNI `38492615` · clave `demo1234`
-- Colaborador: `colaborador@finixcenter.com` · clave `Finix2026!`
+- Colaborador (pestaña "Soy colaborador", solo en demo): `colaborador@finixcenter.com` · clave `Finix2026!`
 
-## 2. Conectar con Firebase
+**Modo real** (`npm run dev:real`): ingresás con el DNI y la contraseña de un socio real, así que cualquier operación (ej. enviar una solicitud o cambiar la contraseña) se hace sobre datos reales. El build de producción (`npm run build`) siempre usa datos reales y **nunca incluye** el modo demo, el panel de colaboradores ni las credenciales de prueba.
 
-1. Creá un proyecto en <https://console.firebase.google.com> y activá **Authentication → Email/Password** y **Firestore Database**.
-2. En *Configuración del proyecto → Tus apps → Web* copiá la configuración y completá `.env.local` (usá `.env.example` como guía).
-3. Publicá las reglas de seguridad: `npx firebase-tools deploy --only firestore:rules` (archivo `firestore.rules`) o pegalas en la consola.
-4. Descargá una **clave de cuenta de servicio** (Configuración → Cuentas de servicio → Generar clave privada), guardala como `serviceAccountKey.json` (está en `.gitignore`, **no la subas**) y creá los usuarios:
+## 2. Conexión con los datos reales de FINIX
 
-```bash
-npm run seed -- staff --email valeria@tudominio.com --password "Clave-Segura-1" --name "Valeria Ortiz"
-npm run seed -- socio --dni 38492615 --password "ClaveSocio1" --name "Mateo E. Gomez" --address "Calle 123" --phone "+54 9 381 555 0142"
-npm run seed -- demo        # opcional: colaborador + socios con créditos de ejemplo
-```
+| Pantalla | Dato real | Endpoint de la API (`/api/…`) |
+|---|---|---|
+| Ingreso | DNI + contraseña del socio (token Bearer) | `ClienteAuth/login` |
+| Inicio / Mis créditos | Saldo, cuota, plan, avance, "Con atraso" | `ClienteCuenta/creditos` |
+| Estado de cuenta | Próximo vencimiento + movimientos (pagos, tickets, intereses…) | `ClienteCuenta/estado-cuenta/{idVenta}` |
+| Mis solicitudes / Detalle | Estado, observaciones y línea de tiempo | `ClienteSolicitudes/mis-solicitudes`, `crm/solicitudes/{id}/detalle` |
+| Avisos | Notificaciones del servidor (leídas / no leídas) | `ClienteNotificaciones` (+ `/leer`, `/leer-todas`) |
+| Perfil | Nombre, DNI, dirección, teléfono, correo, empresa | `ClientePerfil` |
+| Cambiar contraseña | — | `ClienteAuth/cambiar-password` |
+| Nueva solicitud (desde el simulador) | Se envía con los datos del perfil | `Publico/solicitudes`, `Publico/planes` |
+| Contacto de la empresa | Correo y redes (si el servidor los informa) | `Empresa/FINIX` |
 
-Cómo funciona el acceso: los **socios** ingresan con DNI + contraseña (internamente `DNI@socios.finixcenter.app` en Firebase Auth, no es un mail real) y los **colaboradores** con su email. El rol vive en `users/{uid}` y solo se puede escribir con el Admin SDK, así nadie puede auto-asignarse permisos.
+Código: `src/services/apiProvider.js` (mapeo de las respuestas) y `src/services/apiClient.js` (cliente HTTP).
 
-### Modelo de datos (Firestore)
+**Cómo llegan las consultas:** el servidor de FINIX **no habilita CORS**, así que el navegador no puede llamarlo directo. El sitio lo consulta por su propia ruta `/admcloud-api/…`, y el hosting la reenvía a `https://nuevo.mine.nu/admcloud-api/…`:
 
-- `users/{uid}`: `role` (`socio`|`colaborador`), `displayName`, `clientId`, `active`
-- `clients/{id}`: `legajo`, `nombre`, `dni`, `direccion`, `telefono`, `score` (0-100), `deleted`, `updatedAt/updatedByName`
-- `credits/{id}`: `clientId`, `numero`, `plan`, `cuotas`, `valorCuota`, `cuotasPagas`, `estado`, `inicio`, `primerVencimiento`
-- `requests/{id}`: `clientId`, `numero`, `monto`, `plan`, `cuotas`, `estado`, `timeline[]`
-- `auditLogs/{id}`: `ts` (hora del servidor), `actorId/actorName/actorEmail`, `action`, `entityLabel`, `summary`, `changes[]`
+- **Producción (Vercel):** lo hace `vercel.json` (regla `rewrites`). Por eso el sitio con datos reales **se publica en Vercel**.
+- **Desarrollo:** lo hace el proxy de `vite.config.js` (`npm run dev:real`). Si el servidor cambia de dirección: `API_PROXY_TARGET=https://otro.dominio npm run dev:real` y editá el destino en `vercel.json`.
+- Variables opcionales (`.env.example`): `VITE_API_BASE_URL`, `VITE_EMPRESA_CODIGO`, `VITE_NEWS_URL`.
 
-### Auditoría
+**Cosas para saber:**
 
-Cada alta, edición o baja de socio y cada acción sobre una solicitud (revisión, observación, **aprobación**, rechazo) escribe, en el mismo lote que el cambio, un registro con **qué colaborador** lo hizo y **la hora del servidor**. Las reglas impiden modificar o borrar registros de auditoría. La baja de socios es **lógica** (`deleted: true`) para conservar el historial. Se puede exportar a CSV desde el panel.
+1. La sesión se guarda en el navegador (`localStorage`) y se cierra sola cuando el servidor la vence: el sitio avisa "La sesión expiró" en la pantalla de ingreso.
+2. **Estado de cuenta:** la API no entrega un cronograma de cuotas, así que se muestra lo que informa el servidor (próximo vencimiento, importe de cuota y movimientos) en vez de inventar fechas.
+3. **Simulador:** usa las tasas de `src/config/business.js`, no las del servidor. Al enviar la solicitud se usa el plan del servidor (Semanal / Quincenal / Mensual).
+4. No se guardan datos financieros en caché: las consultas van con `no-store`, y al volver a la pestaña después de un minuto el portal se actualiza solo.
+5. Si el servicio no responde, el portal muestra el error con un botón **Reintentar** (no datos viejos).
 
 ## 3. Subir a GitHub y publicar en Vercel
 
@@ -57,29 +64,32 @@ git remote add origin https://github.com/TU_USUARIO/finix-center-web.git
 git push -u origin main
 ```
 
-En <https://vercel.com/new> importá el repo (se detecta Vite). En **Settings → Environment Variables** cargá las `VITE_FIREBASE_*` de `.env.example` y desplegá. `vercel.json` ya incluye el rewrite para que las rutas (`/portal`, `/panel`) funcionen al recargar. Agregá tu dominio de Vercel en *Firebase → Authentication → Settings → Dominios autorizados*.
+En <https://vercel.com/new> importá el repo (se detecta Vite) y desplegá: **no hace falta cargar variables de entorno**. `vercel.json` ya incluye el reenvío a la API de FINIX y el rewrite para que las rutas (`/portal`) funcionen al recargar.
 
-## 3b. Publicar en GitHub Pages (alternativa a Vercel)
+Después de publicar, probá el ingreso con un socio real (o de prueba). Si dice "El servicio no está disponible", revisá que el servidor `nuevo.mine.nu` esté en línea y que la regla `/admcloud-api` de `vercel.json` esté desplegada.
 
-1. Subí el proyecto a un repositorio (ver pasos de arriba). `package.json` debe quedar en la **raíz** del repo y la carpeta `.github/workflows/deploy.yml` tiene que subirse también.
-2. En el repo: **Settings → Pages → Build and deployment → Source: _GitHub Actions_** (no “Deploy from a branch”).
-3. Cada `git push` a `main` ejecuta el workflow (pestaña **Actions**) y publica en `https://USUARIO.github.io/NOMBRE-REPO/`.
-4. Opcional (Firebase): en **Settings → Secrets and variables → Actions** creá los *secrets* `VITE_FIREBASE_*` (mismos nombres que `.env.example`) y agregá `USUARIO.github.io` en *Firebase → Authentication → Settings → Dominios autorizados*. Sin esos secrets el sitio corre en modo demo.
+### GitHub Pages (solo sitio institucional)
 
-Para probar localmente como si estuviera en Pages: `VITE_BASE=/finix-center-web/ npm run build && npm run preview`.
+El workflow `.github/workflows/deploy.yml` publica en `https://USUARIO.github.io/NOMBRE-REPO/`, pero **GitHub Pages no puede reenviar las consultas a la API de FINIX**: ahí el sitio institucional funciona, pero el ingreso de socios no. Para tener datos reales usá Vercel.
 
-## 4. Personalización rápida
+## 4. Novedades editables ("Novedades para vos")
 
-- Textos, WhatsApp, horarios, tasas, planes, requisitos, sucursales y cotización USD: `src/config/business.js`
+El carrusel de Inicio del portal lee un `novedades.json` publicado en internet (el mismo que usa la app Android), así se cambian las promos **sin volver a publicar el sitio**. Pasos, campos y editor visual: **[LEEME-NOVEDADES.md](LEEME-NOVEDADES.md)** y `herramientas/editor-novedades.html`. La dirección está en `src/config/news.js`; si no se puede descargar, se usa el kit incluido en `public/novedades/`.
+
+## 5. Personalización rápida
+
+- Textos, WhatsApp, teléfonos, horarios, tasas, planes, requisitos, sucursales y cotización USD: `src/config/business.js`
 - Logo original: `src/assets/logo-finix.png` (versión blanca e isotipo incluidos). Recomendado reemplazar por un SVG vectorial para máxima nitidez.
 - Colores y modo claro/oscuro: variables en `src/index.css` y `tailwind.config.js`
-- Vista previa en un único archivo HTML (demo): `npm run build:preview` → `dist-preview/index.html`
+- Vista previa en un único archivo HTML (modo demo): `npm run build:preview` → `dist-preview/index.html`
 
 ## Notas
 
-- Pendientes de completar en `business.js`: mail institucional y redes sociales.
+- Pendientes de completar en `business.js`: mail institucional y redes sociales (si el servidor los informa en `Empresa/FINIX`, el portal los toma de ahí).
+- La sucursal "Casa Central Tucumán" (dirección y teléfono) es un dato de ejemplo: reemplazala por el real o quitala de `business.branches`.
 - El simulador usa interés simple por período (6%, o 5% con Supermiércoles) según la maqueta de la app.
-- Recuperación de contraseña: como los socios no usan un mail real, el enlace “¿Olvidaste tu contraseña?” deriva a WhatsApp; el colaborador/administrador restablece la clave desde la consola de Firebase o con `npm run seed -- socio ...`.
+- Recuperación de contraseña: el enlace "¿Olvidaste tu contraseña?" deriva a WhatsApp; el cambio de contraseña estando adentro se hace desde Perfil.
+- **Firebase ya no se usa.** Quedaron sin conectar `src/services/firebaseProvider.js`, `scripts/seed.mjs`, `firestore.rules`, `firebase.json` y las dependencias `firebase`/`firebase-admin`; se pueden borrar cuando quieras.
 
 ## Cotización del dólar automática
 
